@@ -1,4 +1,6 @@
 (function () {
+  const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
+
   const DEFAULT_DASHBOARD_DATA = {
     bergen_design: {
       clientName: 'Bergen Design',
@@ -292,7 +294,7 @@
 
   function mount(root) {
     const clientId = root.getAttribute('data-client-id');
-    const src = root.getAttribute('data-dashboard-src') || window.CLIENT_DASHBOARD_SRC;
+    const src = root.getAttribute('data-dashboard-src') || window.CLIENT_DASHBOARD_SRC || DEFAULT_DASHBOARD_SRC;
     const shouldLoadCsv = src && root.getAttribute('data-dashboard-loaded') !== 'true';
 
     if (shouldLoadCsv) {

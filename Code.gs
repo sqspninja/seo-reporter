@@ -1,5 +1,6 @@
 const CONFIG = {
   rootFolderName: 'SEO Reporting System',
+  publicPayloadSpreadsheetId: '1AQwv7QiNf_0Azx9MxJbrOPhfYrU8iRpnvSxlIzrO_qk',
   defaultClient: {
     client_id: 'bergen_design',
     client_name: 'Bergen Design',
@@ -222,7 +223,8 @@ function runMonthlyReportForClient_(client, period) {
 
 function refreshDashboardPayloadsForActiveClients() {
   const ss = SpreadsheetApp.getActive();
-  ensureSheetWithHeaders_(ss, 'dashboard_payloads', CONFIG.tabs.dashboard_payloads);
+  const payloadSs = getPayloadSpreadsheet_();
+  ensureSheetWithHeaders_(payloadSs, 'dashboard_payloads', CONFIG.tabs.dashboard_payloads);
   const clients = getRows_(ss.getSheetByName('clients')).filter((client) => client.client_id && isActiveClient_(client));
   clients.forEach((client) => refreshDashboardPayloadForClient_(client.client_id));
 }
@@ -232,15 +234,26 @@ function refreshDashboardPayloadForBergenDesign() {
 }
 
 function refreshDashboardPayloadForClient_(clientId) {
-  const ss = SpreadsheetApp.getActive();
-  ensureSheetWithHeaders_(ss, 'dashboard_payloads', CONFIG.tabs.dashboard_payloads);
+  const payloadSs = getPayloadSpreadsheet_();
+  ensureSheetWithHeaders_(payloadSs, 'dashboard_payloads', CONFIG.tabs.dashboard_payloads);
   const payload = getClientDashboardData_(clientId);
-  replaceRowsForClient_('dashboard_payloads', clientId, [[
+  replaceRowsForClientInSpreadsheet_(payloadSs, 'dashboard_payloads', clientId, [[
     clientId,
     payload.reportMonth || '',
     new Date(),
     JSON.stringify(payload)
   ]]);
+}
+
+function publishPayloadWorkbookForWeb() {
+  const file = DriveApp.getFileById(CONFIG.publicPayloadSpreadsheetId);
+  file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+}
+
+function getPayloadSpreadsheet_() {
+  return CONFIG.publicPayloadSpreadsheetId
+    ? SpreadsheetApp.openById(CONFIG.publicPayloadSpreadsheetId)
+    : SpreadsheetApp.getActive();
 }
 
 function fetchGa4Reports_(propertyId, period) {
@@ -731,17 +744,27 @@ function replaceRowsForClientMonth_(sheetName, clientId, reportMonth, rows) {
 }
 
 function replaceRowsForClient_(sheetName, clientId, rows) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
+  replaceRowsForClientInSpreadsheet_(SpreadsheetApp.getActive(), sheetName, clientId, rows);
+}
+
+function replaceRowsForClientInSpreadsheet_(ss, sheetName, clientId, rows) {
+  const sheet = ss.getSheetByName(sheetName);
   const values = sheet.getDataRange().getValues();
   if (values.length < 2) {
-    appendRows_(sheetName, rows);
+    appendRowsToSpreadsheet_(ss, sheetName, rows);
     return;
   }
 
   const kept = [values[0]].concat(values.slice(1).filter((row) => row[0] !== clientId));
   sheet.clearContents();
   sheet.getRange(1, 1, kept.length, kept[0].length).setValues(kept);
-  if (rows.length) appendRows_(sheetName, rows);
+  if (rows.length) appendRowsToSpreadsheet_(ss, sheetName, rows);
+}
+
+function appendRowsToSpreadsheet_(ss, sheetName, rows) {
+  if (!rows.length) return;
+  const sheet = ss.getSheetByName(sheetName);
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
 }
 
 function finishReportRun_(runId, status, message) {

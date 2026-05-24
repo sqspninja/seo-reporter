@@ -1,5 +1,5 @@
 (function () {
-  const WIDGET_VERSION = '2026-05-24.5';
+  const WIDGET_VERSION = '2026-05-24.6';
   const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
 
   const DEFAULT_DASHBOARD_DATA = {
@@ -168,7 +168,7 @@
 
     const payload = JSON.parse(match[payloadIndex]);
 
-    console.log('[client-dashboard] CSV payload:', payload);
+    console.log('[client-dashboard] LIVE CSV PAYLOAD:', payload);
 
     return payload;
   }
@@ -327,8 +327,14 @@
       root.setAttribute('data-dashboard-loaded', 'true');
       loadCsvData(src, clientId)
         .then((data) => {
+          console.log('[client-dashboard] LIVE DATA RETURNED FROM CSV:', data);
+          console.log('[client-dashboard] CLIENT_DASHBOARD_DATA before insert:', window.CLIENT_DASHBOARD_DATA);
           window.CLIENT_DASHBOARD_DATA = window.CLIENT_DASHBOARD_DATA || {};
-          if (data) window.CLIENT_DASHBOARD_DATA[clientId] = Object.assign({}, data, { __source: 'csv' });
+          if (data) {
+            window.CLIENT_DASHBOARD_DATA[clientId] = Object.assign({}, data, { __source: 'csv' });
+          }
+          console.log('[client-dashboard] CLIENT_DASHBOARD_DATA after insert:', window.CLIENT_DASHBOARD_DATA);
+          console.log('[client-dashboard] Data object for current client:', window.CLIENT_DASHBOARD_DATA[clientId]);
           mount(root);
         })
         .catch((error) => {

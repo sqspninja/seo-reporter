@@ -113,6 +113,12 @@ const CONFIG = {
       'url',
       'notes',
       'completed_date'
+    ],
+    dashboard_payloads: [
+      'client_id',
+      'report_month',
+      'updated_at',
+      'payload_json'
     ]
   }
 };
@@ -173,23 +179,6 @@ function runMonthlyReportForBergenDesign() {
   runMonthlyReportForClient_(client, getLastCompleteMonth_());
 }
 
-function doGet(e) {
-  const clientId = e && e.parameter && e.parameter.client_id ? e.parameter.client_id : 'bergen_design';
-  const data = getClientDashboardData_(clientId);
-  const payload = {};
-  payload[clientId] = data;
-
-  const script = [
-    'window.CLIENT_DASHBOARD_DATA = window.CLIENT_DASHBOARD_DATA || {};',
-    `Object.assign(window.CLIENT_DASHBOARD_DATA, ${JSON.stringify(payload)});`,
-    'window.dispatchEvent(new CustomEvent("clientDashboardDataReady", { detail: window.CLIENT_DASHBOARD_DATA }));'
-  ].join('\n');
-
-  return ContentService
-    .createTextOutput(script)
-    .setMimeType(ContentService.MimeType.JAVASCRIPT);
-}
-
 function backfillBergenDesignLast6Months() {
   const ss = SpreadsheetApp.getActive();
   const client = getRows_(ss.getSheetByName('clients')).find((row) => row.client_id === 'bergen_design');
@@ -222,12 +211,36 @@ function runMonthlyReportForClient_(client, period) {
     replaceRowsForClientMonth_('gsc_monthly_summary', client.client_id, period.reportMonth, [gsc.summaryRow(client, period)]);
     replaceRowsForClientMonth_('gsc_pages', client.client_id, period.reportMonth, gsc.pageRows(client, period));
     replaceRowsForClientMonth_('gsc_queries', client.client_id, period.reportMonth, gsc.queryRows(client, period));
+    refreshDashboardPayloadForClient_(client.client_id);
 
     finishReportRun_(runId, 'complete', 'Monthly data pull completed.');
   } catch (error) {
     finishReportRun_(runId, 'error', error && error.message ? error.message : String(error));
     throw error;
   }
+}
+
+function refreshDashboardPayloadsForActiveClients() {
+  const ss = SpreadsheetApp.getActive();
+  ensureSheetWithHeaders_(ss, 'dashboard_payloads', CONFIG.tabs.dashboard_payloads);
+  const clients = getRows_(ss.getSheetByName('clients')).filter((client) => client.client_id && isActiveClient_(client));
+  clients.forEach((client) => refreshDashboardPayloadForClient_(client.client_id));
+}
+
+function refreshDashboardPayloadForBergenDesign() {
+  refreshDashboardPayloadForClient_('bergen_design');
+}
+
+function refreshDashboardPayloadForClient_(clientId) {
+  const ss = SpreadsheetApp.getActive();
+  ensureSheetWithHeaders_(ss, 'dashboard_payloads', CONFIG.tabs.dashboard_payloads);
+  const payload = getClientDashboardData_(clientId);
+  replaceRowsForClient_('dashboard_payloads', clientId, [[
+    clientId,
+    payload.reportMonth || '',
+    new Date(),
+    JSON.stringify(payload)
+  ]]);
 }
 
 function fetchGa4Reports_(propertyId, period) {
@@ -342,6 +355,7 @@ function getClientDashboardData_(clientId) {
 
   return {
     clientName: client.client_name || client.client_id,
+    reportMonth: currentMonth,
     reportLabel: formatReportLabel_(currentMonth),
     comparisonLabel: formatReportLabel_(previousMonth),
     lede: `${formatReportLabel_(currentMonth)} search and traffic data for ${client.client_name || client.client_id}.`,
@@ -711,6 +725,20 @@ function replaceRowsForClientMonth_(sheetName, clientId, reportMonth, rows) {
     return !(row[0] === clientId && row[1] === reportMonth);
   }));
 
+  sheet.clearContents();
+  sheet.getRange(1, 1, kept.length, kept[0].length).setValues(kept);
+  if (rows.length) appendRows_(sheetName, rows);
+}
+
+function replaceRowsForClient_(sheetName, clientId, rows) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(sheetName);
+  const values = sheet.getDataRange().getValues();
+  if (values.length < 2) {
+    appendRows_(sheetName, rows);
+    return;
+  }
+
+  const kept = [values[0]].concat(values.slice(1).filter((row) => row[0] !== clientId));
   sheet.clearContents();
   sheet.getRange(1, 1, kept.length, kept[0].length).setValues(kept);
   if (rows.length) appendRows_(sheetName, rows);

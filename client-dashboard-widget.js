@@ -102,16 +102,52 @@
     return (window.CLIENT_DASHBOARD_DATA && window.CLIENT_DASHBOARD_DATA[clientId]) || DEFAULT_DASHBOARD_DATA[clientId];
   }
 
-  function loadRemoteData(endpoint, clientId, onComplete) {
-    const url = new URL(endpoint, window.location.href);
-    url.searchParams.set('client_id', clientId);
+  function parseCsv(text) {
+    const rows = [];
+    let row = [];
+    let value = '';
+    let quoted = false;
 
-    const script = document.createElement('script');
-    script.src = url.toString();
-    script.async = true;
-    script.onload = onComplete;
-    script.onerror = onComplete;
-    document.head.appendChild(script);
+    for (let index = 0; index < text.length; index += 1) {
+      const char = text[index];
+      const next = text[index + 1];
+
+      if (char === '"' && quoted && next === '"') {
+        value += '"';
+        index += 1;
+      } else if (char === '"') {
+        quoted = !quoted;
+      } else if (char === ',' && !quoted) {
+        row.push(value);
+        value = '';
+      } else if ((char === '\n' || char === '\r') && !quoted) {
+        if (char === '\r' && next === '\n') index += 1;
+        row.push(value);
+        if (row.some((cell) => cell !== '')) rows.push(row);
+        row = [];
+        value = '';
+      } else {
+        value += char;
+      }
+    }
+
+    row.push(value);
+    if (row.some((cell) => cell !== '')) rows.push(row);
+    return rows;
+  }
+
+  async function loadCsvData(src, clientId) {
+    const response = await fetch(src, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Dashboard CSV request failed: ${response.status}`);
+
+    const rows = parseCsv(await response.text());
+    const headers = rows.shift() || [];
+    const clientIndex = headers.indexOf('client_id');
+    const payloadIndex = headers.indexOf('payload_json');
+    const match = rows.find((row) => row[clientIndex] === clientId);
+
+    if (!match || payloadIndex === -1) return null;
+    return JSON.parse(match[payloadIndex]);
   }
 
   function injectStyles() {
@@ -256,13 +292,19 @@
 
   function mount(root) {
     const clientId = root.getAttribute('data-client-id');
-    const endpoint = root.getAttribute('data-dashboard-endpoint') || window.CLIENT_DASHBOARD_ENDPOINT;
-    const shouldLoadRemote = endpoint && root.getAttribute('data-dashboard-loaded') !== 'true';
+    const src = root.getAttribute('data-dashboard-src') || window.CLIENT_DASHBOARD_SRC;
+    const shouldLoadCsv = src && root.getAttribute('data-dashboard-loaded') !== 'true';
 
-    if (shouldLoadRemote) {
+    if (shouldLoadCsv) {
       root.textContent = 'Loading dashboard...';
       root.setAttribute('data-dashboard-loaded', 'true');
-      loadRemoteData(endpoint, clientId, () => mount(root));
+      loadCsvData(src, clientId)
+        .then((data) => {
+          window.CLIENT_DASHBOARD_DATA = window.CLIENT_DASHBOARD_DATA || {};
+          if (data) window.CLIENT_DASHBOARD_DATA[clientId] = data;
+          mount(root);
+        })
+        .catch(() => mount(root));
       return;
     }
 

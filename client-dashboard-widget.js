@@ -98,6 +98,22 @@
     return window.CLIENT_DASHBOARD_DATA || DEFAULT_DASHBOARD_DATA;
   }
 
+  function getLocalData(clientId) {
+    return (window.CLIENT_DASHBOARD_DATA && window.CLIENT_DASHBOARD_DATA[clientId]) || DEFAULT_DASHBOARD_DATA[clientId];
+  }
+
+  function loadRemoteData(endpoint, clientId, onComplete) {
+    const url = new URL(endpoint, window.location.href);
+    url.searchParams.set('client_id', clientId);
+
+    const script = document.createElement('script');
+    script.src = url.toString();
+    script.async = true;
+    script.onload = onComplete;
+    script.onerror = onComplete;
+    document.head.appendChild(script);
+  }
+
   function injectStyles() {
     if (document.getElementById('client-dashboard-widget-styles')) return;
 
@@ -149,6 +165,7 @@
   }
 
   function formatNumber(value) {
+    if (value === '' || value === null || value === undefined) return '—';
     return Number(value).toLocaleString();
   }
 
@@ -239,7 +256,17 @@
 
   function mount(root) {
     const clientId = root.getAttribute('data-client-id');
-    const data = getData()[clientId];
+    const endpoint = root.getAttribute('data-dashboard-endpoint') || window.CLIENT_DASHBOARD_ENDPOINT;
+    const shouldLoadRemote = endpoint && root.getAttribute('data-dashboard-loaded') !== 'true';
+
+    if (shouldLoadRemote) {
+      root.textContent = 'Loading dashboard...';
+      root.setAttribute('data-dashboard-loaded', 'true');
+      loadRemoteData(endpoint, clientId, () => mount(root));
+      return;
+    }
+
+    const data = getLocalData(clientId);
 
     if (!data) {
       root.textContent = `No dashboard data found for client: ${clientId}`;

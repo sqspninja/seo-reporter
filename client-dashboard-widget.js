@@ -1,5 +1,5 @@
 (function () {
-  const WIDGET_VERSION = '2026-05-24.2';
+  const WIDGET_VERSION = '2026-05-24.3';
   const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
 
   const DEFAULT_DASHBOARD_DATA = {
@@ -140,7 +140,21 @@
   }
 
   async function loadCsvData(src, clientId) {
-    const response = await fetch(src, { cache: 'no-store' });
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 7000);
+    const separator = src.includes('?') ? '&' : '?';
+    const requestUrl = `${src}${separator}_cd=${Date.now()}`;
+
+    let response;
+    try {
+      response = await fetch(requestUrl, {
+        cache: 'no-store',
+        signal: controller.signal
+      });
+    } finally {
+      window.clearTimeout(timeout);
+    }
+
     if (!response.ok) throw new Error(`Dashboard CSV request failed: ${response.status}`);
 
     const rows = parseCsv(await response.text());
@@ -276,10 +290,12 @@
   }
 
   function renderDashboard(root, data, clientState) {
+    const dataSourceLabel = data.__source === 'csv' ? 'live csv' : 'fallback data';
+
     root.classList.add('client-dashboard');
     root.innerHTML = `
       <header class="cd-header">
-        <p class="cd-version">Dashboard widget ${escapeHtml(WIDGET_VERSION)} · ${data.reportMonth ? `data ${escapeHtml(data.reportMonth)}` : 'data source active'}</p>
+        <p class="cd-version">Dashboard widget ${escapeHtml(WIDGET_VERSION)} · ${escapeHtml(dataSourceLabel)} · ${data.reportMonth ? `data ${escapeHtml(data.reportMonth)}` : 'data source active'}</p>
         <p class="cd-muted">Monthly Analytics Dashboard</p>
         <h1>${escapeHtml(data.clientName)}</h1>
         <p>${escapeHtml(data.reportLabel)}, compared with ${escapeHtml(data.comparisonLabel)}</p>
@@ -306,10 +322,13 @@
       loadCsvData(src, clientId)
         .then((data) => {
           window.CLIENT_DASHBOARD_DATA = window.CLIENT_DASHBOARD_DATA || {};
-          if (data) window.CLIENT_DASHBOARD_DATA[clientId] = data;
+          if (data) window.CLIENT_DASHBOARD_DATA[clientId] = Object.assign({}, data, { __source: 'csv' });
           mount(root);
         })
-        .catch(() => mount(root));
+        .catch((error) => {
+          console.warn('[client-dashboard] Falling back to bundled dashboard data.', error);
+          mount(root);
+        });
       return;
     }
 

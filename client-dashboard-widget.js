@@ -140,13 +140,8 @@
   }
 
   async function loadCsvData(src, clientId) {
-    console.log('[client-dashboard] Fetching dashboard CSV:', src);
-
     const response = await fetch(src, { cache: 'reload' });
     const text = await response.text();
-
-    console.log('[client-dashboard] CSV status:', response.status, response.statusText);
-    console.log('[client-dashboard] CSV raw response:', text);
 
     if (!response.ok) throw new Error(`Dashboard CSV request failed: ${response.status}`);
 
@@ -154,9 +149,6 @@
     const headers = rows.shift() || [];
     const clientIndex = headers.indexOf('client_id');
     const payloadIndex = headers.indexOf('payload_json');
-
-    console.log('[client-dashboard] CSV headers:', headers);
-    console.log('[client-dashboard] CSV rows:', rows);
 
     if (clientIndex === -1 || payloadIndex === -1) {
       throw new Error(`Dashboard CSV is missing expected headers. Found: ${headers.join(', ') || 'none'}`);
@@ -166,11 +158,7 @@
 
     if (!match) throw new Error(`Dashboard CSV has no row for client_id: ${clientId}`);
 
-    const payload = JSON.parse(match[payloadIndex]);
-
-    console.log('[client-dashboard] LIVE CSV PAYLOAD:', payload);
-
-    return payload;
+    return JSON.parse(match[payloadIndex]);
   }
 
   function injectStyles() {
@@ -327,14 +315,10 @@
       root.setAttribute('data-dashboard-loaded', 'true');
       loadCsvData(src, clientId)
         .then((data) => {
-          console.log('[client-dashboard] LIVE DATA RETURNED FROM CSV:', data);
-          console.log('[client-dashboard] CLIENT_DASHBOARD_DATA before insert:', window.CLIENT_DASHBOARD_DATA);
           window.CLIENT_DASHBOARD_DATA = window.CLIENT_DASHBOARD_DATA || {};
           if (data) {
             window.CLIENT_DASHBOARD_DATA[clientId] = Object.assign({}, data, { __source: 'csv' });
           }
-          console.log('[client-dashboard] CLIENT_DASHBOARD_DATA after insert:', window.CLIENT_DASHBOARD_DATA);
-          console.log('[client-dashboard] Data object for current client:', window.CLIENT_DASHBOARD_DATA[clientId]);
           mount(root);
         })
         .catch((error) => {

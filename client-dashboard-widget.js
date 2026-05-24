@@ -1,5 +1,5 @@
 (function () {
-  const WIDGET_VERSION = '2026-05-24.3';
+  const WIDGET_VERSION = '2026-05-24.5';
   const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
 
   const DEFAULT_DASHBOARD_DATA = {
@@ -140,31 +140,37 @@
   }
 
   async function loadCsvData(src, clientId) {
-    const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 7000);
-    const separator = src.includes('?') ? '&' : '?';
-    const requestUrl = `${src}${separator}_cd=${Date.now()}`;
+    console.log('[client-dashboard] Fetching dashboard CSV:', src);
 
-    let response;
-    try {
-      response = await fetch(requestUrl, {
-        cache: 'no-store',
-        signal: controller.signal
-      });
-    } finally {
-      window.clearTimeout(timeout);
-    }
+    const response = await fetch(src, { cache: 'reload' });
+    const text = await response.text();
+
+    console.log('[client-dashboard] CSV status:', response.status, response.statusText);
+    console.log('[client-dashboard] CSV raw response:', text);
 
     if (!response.ok) throw new Error(`Dashboard CSV request failed: ${response.status}`);
 
-    const rows = parseCsv(await response.text());
+    const rows = parseCsv(text);
     const headers = rows.shift() || [];
     const clientIndex = headers.indexOf('client_id');
     const payloadIndex = headers.indexOf('payload_json');
+
+    console.log('[client-dashboard] CSV headers:', headers);
+    console.log('[client-dashboard] CSV rows:', rows);
+
+    if (clientIndex === -1 || payloadIndex === -1) {
+      throw new Error(`Dashboard CSV is missing expected headers. Found: ${headers.join(', ') || 'none'}`);
+    }
+
     const match = rows.find((row) => row[clientIndex] === clientId);
 
-    if (!match || payloadIndex === -1) return null;
-    return JSON.parse(match[payloadIndex]);
+    if (!match) throw new Error(`Dashboard CSV has no row for client_id: ${clientId}`);
+
+    const payload = JSON.parse(match[payloadIndex]);
+
+    console.log('[client-dashboard] CSV payload:', payload);
+
+    return payload;
   }
 
   function injectStyles() {

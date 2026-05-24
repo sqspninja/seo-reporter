@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SEO Monthly Dashboard Mockup</title>
+  <style>
+    :root {
+      --dashboard-gap: 1rem;
+      --dashboard-border: 1px solid currentColor;
+      --dashboard-muted: color-mix(in srgb, currentColor 62%, transparent);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .seo-dashboard {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0;
+    }
+
+    .dashboard-header,
+    .dashboard-grid,
+    .dashboard-section,
+    .summary-list,
+    .trend-grid,
+    .task-list {
+      display: grid;
+      gap: var(--dashboard-gap);
+    }
+
+    .dashboard-header {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+
+    .dashboard-header h1,
+    .dashboard-section h2,
+    .dashboard-section h3,
+    .metric-card p {
+      margin: 0;
+    }
+
+    .dashboard-eyebrow,
+    .metric-label,
+    .metric-context,
+    .table-note,
+    .task-meta {
+      color: var(--dashboard-muted);
+      font-size: 0.9rem;
+    }
+
+    .month-select {
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      border: var(--dashboard-border);
+      padding: 0.55rem 0.75rem;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--dashboard-gap);
+      margin-bottom: 1rem;
+    }
+
+    .metric-card,
+    .dashboard-section {
+      border: var(--dashboard-border);
+      padding: 1rem;
+    }
+
+    .metric-value {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      line-height: 1;
+    }
+
+    .metric-context {
+      display: block;
+      margin-top: 0.4rem;
+    }
+
+    .dashboard-grid {
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+      align-items: start;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+      margin-bottom: 1rem;
+    }
+
+    .summary-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .summary-item {
+      border-top: var(--dashboard-border);
+      padding-top: 0.75rem;
+    }
+
+    .trend-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .trend-item {
+      border-top: var(--dashboard-border);
+      padding-top: 0.75rem;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+      border-top: var(--dashboard-border);
+      padding: 0.65rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .data-table th:last-child,
+    .data-table td:last-child {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .page-path {
+      overflow-wrap: anywhere;
+    }
+
+    .bar-cell {
+      min-width: 9rem;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: var(--bar-size) 1fr;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .bar::before {
+      content: "";
+      display: block;
+      height: 0.45rem;
+      border: var(--dashboard-border);
+      background: currentColor;
+    }
+
+    .month-trend {
+      display: grid;
+      grid-template-columns: 5rem minmax(4rem, var(--bar-size)) 1fr;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .month-trend::before {
+      content: "";
+      display: block;
+      height: 0.45rem;
+      border: var(--dashboard-border);
+      background: currentColor;
+    }
+
+    .task-list {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .task-list li {
+      border-top: var(--dashboard-border);
+      padding-top: 0.85rem;
+    }
+
+    .dashboard-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+
+    .dashboard-actions a {
+      border: var(--dashboard-border);
+      color: inherit;
+      display: inline-flex;
+      padding: 0.65rem 0.8rem;
+      text-decoration: none;
+    }
+
+    @media (max-width: 820px) {
+      .dashboard-header,
+      .dashboard-grid,
+      .summary-list,
+      .trend-grid,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="seo-dashboard" data-seo-dashboard data-client-id="bergen_design">
+    <header class="dashboard-header">
+      <div>
+        <p class="dashboard-eyebrow">Monthly SEO report</p>
+        <h1>Bergen Design</h1>
+        <p>April 1-30, 2026</p>
+      </div>
+      <div class="month-select" aria-label="Selected report month">
+        <span>Report month</span>
+        <strong>April 2026</strong>
+      </div>
+    </header>
+
+    <section class="metric-grid" aria-label="Monthly performance snapshot">
+      <article class="metric-card">
+        <p class="metric-label">GA4 sessions</p>
+        <strong class="metric-value">56</strong>
+        <span class="metric-context">Above 6-month average, down from March</span>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Search clicks</p>
+        <strong class="metric-value">91</strong>
+        <span class="metric-context">Best month in current range</span>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Search impressions</p>
+        <strong class="metric-value">13,578</strong>
+        <span class="metric-context">Up across six-month trend</span>
+      </article>
+      <article class="metric-card">
+        <p class="metric-label">Average position</p>
+        <strong class="metric-value">9.57</strong>
+        <span class="metric-context">Improved from 12.4 in November</span>
+      </article>
+    </section>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-column">
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>What mattered this month</h2>
+            <p class="table-note">Draft narrative for review</p>
+          </div>
+          <div class="summary-list">
+            <article class="summary-item">
+              <h3>Search visibility is active</h3>
+              <p>Google showed Bergen Design in search results 13,578 times in April. That is the strongest visibility month in this six-month view.</p>
+            </article>
+            <article class="summary-item">
+              <h3>Blog content is carrying discovery</h3>
+              <p>The Squarespace plugins article brought the most search clicks and continues to match the strongest query cluster.</p>
+            </article>
+            <article class="summary-item">
+              <h3>Next fix should be conversion-focused</h3>
+              <p>Review high-visibility pages and add clearer next steps from blog traffic into consultation or contact actions.</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Six-month trend</h2>
+            <p class="table-note">Demo historical values until backfill runs; April is real data</p>
+          </div>
+          <div class="trend-grid">
+            <article class="trend-item">
+              <h3>Clicks are building</h3>
+              <p>Search clicks rise from 54 in November to 91 in April. The dashboard should show whether SEO work is compounding.</p>
+            </article>
+            <article class="trend-item">
+              <h3>Visibility is expanding</h3>
+              <p>Impressions climb from about 8.7k to 13.6k. This helps explain whether Google is showing the site more often.</p>
+            </article>
+            <article class="trend-item">
+              <h3>Rankings are getting stronger</h3>
+              <p>Average position moves from 12.4 to 9.57. Lower is better, so this is an owner-friendly progress signal.</p>
+            </article>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Sessions</th>
+                <th>Clicks</th>
+                <th>Impressions</th>
+                <th>Avg position</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nov 2025</td>
+                <td>42</td>
+                <td>54</td>
+                <td>8,700</td>
+                <td>12.40</td>
+              </tr>
+              <tr>
+                <td>Dec 2025</td>
+                <td>38</td>
+                <td>49</td>
+                <td>7,900</td>
+                <td>12.90</td>
+              </tr>
+              <tr>
+                <td>Jan 2026</td>
+                <td>47</td>
+                <td>68</td>
+                <td>9,800</td>
+                <td>11.20</td>
+              </tr>
+              <tr>
+                <td>Feb 2026</td>
+                <td>53</td>
+                <td>74</td>
+                <td>11,300</td>
+                <td>10.40</td>
+              </tr>
+              <tr>
+                <td>Mar 2026</td>
+                <td>61</td>
+                <td>88</td>
+                <td>12,980</td>
+                <td>9.90</td>
+              </tr>
+              <tr>
+                <td><strong>Apr 2026</strong></td>
+                <td><strong>56</strong></td>
+                <td><strong>91</strong></td>
+                <td><strong>13,578</strong></td>
+                <td><strong>9.57</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Top pages from Google Search</h2>
+            <p class="table-note">Clicks, impressions, and average position</p>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th>Clicks</th>
+                <th>Impressions</th>
+                <th>Position</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="page-path">/blog/my-top-10-favorite-squarespace-plugins</td>
+                <td>53</td>
+                <td>4,061</td>
+                <td>6.98</td>
+              </tr>
+              <tr>
+                <td class="page-path">/blog/squarespace-permissions-explained...</td>
+                <td>18</td>
+                <td>3,921</td>
+                <td>6.45</td>
+              </tr>
+              <tr>
+                <td class="page-path">/</td>
+                <td>16</td>
+                <td>3,332</td>
+                <td>16.79</td>
+              </tr>
+              <tr>
+                <td class="page-path">/web-design-paramus-nj</td>
+                <td>3</td>
+                <td>222</td>
+                <td>10.57</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Top landing pages from site traffic</h2>
+            <p class="table-note">GA4 sessions and engagement</p>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Landing page</th>
+                <th>Sessions</th>
+                <th>Engagement</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="page-path">/</td>
+                <td>14</td>
+                <td>92.9%</td>
+              </tr>
+              <tr>
+                <td class="page-path">/blog/my-top-10-favorite-squarespace-plugins</td>
+                <td>14</td>
+                <td>64.3%</td>
+              </tr>
+              <tr>
+                <td class="page-path">/blog/squarespace-permissions-explained...</td>
+                <td>8</td>
+                <td>62.5%</td>
+              </tr>
+              <tr>
+                <td class="page-path">/60-minute-meeting</td>
+                <td>5</td>
+                <td>40.0%</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </div>
+
+      <aside class="dashboard-column">
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Historical snapshot</h2>
+            <p class="table-note">Search clicks by month</p>
+          </div>
+          <div class="task-list">
+            <div class="month-trend" style="--bar-size: 59%;">
+              <span>Nov</span>
+              <strong>54</strong>
+            </div>
+            <div class="month-trend" style="--bar-size: 54%;">
+              <span>Dec</span>
+              <strong>49</strong>
+            </div>
+            <div class="month-trend" style="--bar-size: 75%;">
+              <span>Jan</span>
+              <strong>68</strong>
+            </div>
+            <div class="month-trend" style="--bar-size: 81%;">
+              <span>Feb</span>
+              <strong>74</strong>
+            </div>
+            <div class="month-trend" style="--bar-size: 97%;">
+              <span>Mar</span>
+              <strong>88</strong>
+            </div>
+            <div class="month-trend" style="--bar-size: 100%;">
+              <span>Apr</span>
+              <strong>91</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Search terms</h2>
+            <p class="table-note">Click leaders</p>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Query</th>
+                <th>Clicks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="bar-cell">
+                  <div class="bar" style="--bar-size: 100%;">squarespace plugins</div>
+                </td>
+                <td>9</td>
+              </tr>
+              <tr>
+                <td class="bar-cell">
+                  <div class="bar" style="--bar-size: 33%;">best squarespace plugins</div>
+                </td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td class="bar-cell">
+                  <div class="bar" style="--bar-size: 33%;">squarespace plugin</div>
+                </td>
+                <td>3</td>
+              </tr>
+              <tr>
+                <td class="bar-cell">
+                  <div class="bar" style="--bar-size: 22%;">web design near me</div>
+                </td>
+                <td>2</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Recommended fixes</h2>
+            <p class="table-note">For owner review</p>
+          </div>
+          <ul class="task-list">
+            <li>
+              <strong>Add stronger consultation CTA to high-traffic blog posts.</strong>
+              <p class="task-meta">Source: GSC + GA4. Priority: high.</p>
+            </li>
+            <li>
+              <strong>Review homepage title/meta against local web design searches.</strong>
+              <p class="task-meta">Source: GSC. Priority: medium.</p>
+            </li>
+            <li>
+              <strong>Check “not set” landing traffic in GA4 before next report.</strong>
+              <p class="task-meta">Source: GA4. Priority: medium.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Completed this month</h2>
+            <p class="table-note">Manual entries later</p>
+          </div>
+          <ul class="task-list">
+            <li>
+              <strong>Monthly GA4 and Search Console report generated.</strong>
+              <p class="task-meta">Completed May 22, 2026.</p>
+            </li>
+            <li>
+              <strong>Client reporting folders created in Drive.</strong>
+              <p class="task-meta">Reports, Source Exports, Assets.</p>
+            </li>
+          </ul>
+        </section>
+
+        <section class="dashboard-section">
+          <h2>Report actions</h2>
+          <p>V1 can stay private/internal. Later, this area can publish a client-safe monthly summary or export a PDF.</p>
+          <div class="dashboard-actions">
+            <a href="#">Review AI draft</a>
+            <a href="#">Mark tasks complete</a>
+            <a href="#">Export monthly report</a>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

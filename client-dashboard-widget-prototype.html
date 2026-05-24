@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Client Dashboard Widget Prototype</title>
+  <style>
+    :root {
+      --gap: 1rem;
+      --line: 1px solid currentColor;
+      --muted: color-mix(in srgb, currentColor 62%, transparent);
+      --good: #176b3a;
+      --bad: #9d3b27;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+
+    .client-dashboard {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+
+    .report-header,
+    .snapshot,
+    .section,
+    .split-row,
+    .opportunity-grid,
+    .next-step-grid,
+    .history-row {
+      display: grid;
+      gap: var(--gap);
+    }
+
+    .report-header {
+      border-bottom: var(--line);
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .story-lede {
+      max-width: 72ch;
+      margin: 0 0 1.25rem;
+    }
+
+    .snapshot {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 1rem;
+    }
+
+    .snapshot-card,
+    .section,
+    .opportunity-card,
+    .next-step-card {
+      border: var(--line);
+      padding: 1rem;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { line-height: 1.1; }
+    p:last-child { margin-bottom: 0; }
+
+    .muted,
+    .metric-caption,
+    .table-caption,
+    .secondary,
+    .plain-note {
+      color: var(--muted);
+    }
+
+    .metric-label {
+      display: flex;
+      gap: 0.35rem;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    abbr {
+      cursor: help;
+      text-decoration: underline dotted;
+      text-underline-offset: 0.18em;
+    }
+
+    .primary-number {
+      display: block;
+      font-size: clamp(2.1rem, 5vw, 4rem);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .secondary-number {
+      display: block;
+      margin: 0.35rem 0 0.5rem;
+    }
+
+    .change {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      border: var(--line);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .change.good { color: var(--good); }
+    .change.bad { color: var(--bad); }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+      border-bottom: var(--line);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .sort-toggle {
+      display: inline-flex;
+      border: var(--line);
+    }
+
+    .sort-toggle button {
+      appearance: none;
+      border: 0;
+      border-right: var(--line);
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      font: inherit;
+    }
+
+    .sort-toggle button:last-child {
+      border-right: 0;
+    }
+
+    .sort-toggle button[aria-pressed="true"] {
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-top: var(--line);
+      padding: 0.7rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: 44%;
+    }
+
+    th:not(:first-child),
+    td:not(:first-child) {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .row-title {
+      display: block;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .split-row {
+      grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.42fr);
+      align-items: start;
+    }
+
+    .compact-table th,
+    .compact-table td {
+      padding: 0.6rem 0.35rem;
+    }
+
+    .stat-list {
+      display: grid;
+      gap: 0.75rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: minmax(8rem, 1fr) auto;
+      gap: 1rem;
+      border-top: var(--line);
+      padding-top: 0.75rem;
+    }
+
+    .opportunity-grid,
+    .next-step-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mini-list {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .mini-list li + li {
+      margin-top: 0.45rem;
+    }
+
+    .history-row {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .history-month {
+      border-top: var(--line);
+      padding-top: 0.75rem;
+    }
+
+    @media (max-width: 820px) {
+      .snapshot,
+      .split-row,
+      .opportunity-grid,
+      .next-step-grid,
+      .history-row {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        display: grid;
+      }
+
+      table,
+      thead,
+      tbody,
+      tr,
+      th,
+      td {
+        display: block;
+      }
+
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+
+      tr {
+        border-top: var(--line);
+        padding: 0.7rem 0;
+      }
+
+      td,
+      th,
+      th:first-child,
+      td:first-child,
+      th:not(:first-child),
+      td:not(:first-child) {
+        width: 100%;
+        border-top: 0;
+        padding: 0.25rem 0;
+        text-align: left;
+        white-space: normal;
+      }
+
+      td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 700;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div data-client-dashboard data-client-id="bergen_design"></div>
+
+  <script>
+    const CLIENT_DASHBOARD_DATA = {
+      bergen_design: {
+        clientName: 'Bergen Design',
+        reportLabel: 'April 2026',
+        comparisonLabel: 'March 2026',
+        lede: 'This month, Google showed Bergen Design more often and search clicks reached the strongest point in the six-month view. The dashboard starts with visibility, then shows the keywords, pages, sources, tracked actions, and simple opportunity lists behind that result.',
+        snapshot: [
+          {
+            title: 'Search Performance',
+            help: 'How many times your site appeared in Google search results, whether or not someone clicked.',
+            primary: '13,578',
+            caption: 'Times Bergen Design appeared in Google search results.',
+            secondary: '91 clicks from Google',
+            change: '+4.6% visibility vs last month',
+            tone: 'good'
+          },
+          {
+            title: 'New Visitors',
+            primary: '37',
+            caption: 'First-time visitors measured by GA4.',
+            change: '+8.8% vs last month',
+            tone: 'good'
+          },
+          {
+            title: 'Average Google Position',
+            help: 'The average spot where your site appeared in Google. Lower numbers are better: 1 is the top result.',
+            primary: '9.57',
+            caption: 'Average ranking in Google. Lower is better.',
+            secondary: 'Previous month: 9.90',
+            change: 'Improved 3.3%',
+            tone: 'good'
+          }
+        ],
+        keywords: [
+          { keyword: 'squarespace plugins', clicks: 9, impressions: 949, ctr: '0.95%', position: '8.89' },
+          { keyword: 'best squarespace plugins', clicks: 3, impressions: 118, ctr: '2.54%', position: '7.14' },
+          { keyword: 'squarespace plugin', clicks: 3, impressions: 52, ctr: '5.77%', position: '8.62' },
+          { keyword: 'squarespace blog plugins', clicks: 2, impressions: 29, ctr: '6.90%', position: '6.24' },
+          { keyword: 'plugins for squarespace', clicks: 2, impressions: 27, ctr: '7.41%', position: '8.63' },
+          { keyword: 'web design near me', clicks: 2, impressions: 6, ctr: '33.33%', position: '15.33' }
+        ],
+        pages: [
+          { path: '/blog/my-top-10-favorite-squarespace-plugins', clicks: 53, impressions: 4061, ctr: '1.31%', position: '6.98' },
+          { path: '/blog/squarespace-permissions-explained...', clicks: 18, impressions: 3921, ctr: '0.46%', position: '6.45' },
+          { path: '/', clicks: 16, impressions: 3332, ctr: '0.48%', position: '16.79' },
+          { path: '/web-design-paramus-nj', clicks: 3, impressions: 222, ctr: '1.35%', position: '10.57' },
+          { path: '/blog/how-to-change-your-internal-built-in-domain...', clicks: 1, impressions: 194, ctr: '0.52%', position: '8.21' }
+        ],
+        trafficSources: [
+          { source: 'Organic Search', users: 24, newUsers: 20, engagement: '64%' },
+          { source: 'Direct', users: 8, newUsers: 6, engagement: '58%' },
+          { source: 'Referral', users: 3, newUsers: 3, engagement: '67%' },
+          { source: 'Social', users: 2, newUsers: 2, engagement: '50%' }
+        ],
+        keyActions: [
+          { label: 'Booking / consultation clicks', value: 5 },
+          { label: 'Contact page visits', value: 2 },
+          { label: 'Phone / email clicks', value: 1 },
+          { label: 'Other tracked actions', value: 1 }
+        ],
+        history: [
+          { month: 'Nov', impressions: '8,700', clicks: 54 },
+          { month: 'Dec', impressions: '7,900', clicks: 49 },
+          { month: 'Jan', impressions: '9,800', clicks: 68 },
+          { month: 'Feb', impressions: '11,300', clicks: 74 },
+          { month: 'Mar', impressions: '12,980', clicks: 88 },
+          { month: 'Apr', impressions: '13,578', clicks: 91 }
+        ],
+        opportunities: [
+          {
+            title: 'High Impressions, Low Clicks',
+            description: 'Search results are showing, but people are not choosing them often enough.',
+            items: [
+              'Homepage: 3,332 impressions, 0.48% CTR',
+              'Permissions article: 3,921 impressions, 0.46% CTR',
+              'Domain article: 194 impressions, 0.52% CTR'
+            ]
+          },
+          {
+            title: 'Close Ranking Opportunities',
+            description: 'Searches close enough to improve with focused page updates, internal links, or content additions.',
+            items: [
+              'squarespace plugins: avg position 8.89',
+              'web-design-paramus-nj page: avg position 10.57',
+              'homepage: avg position 16.79'
+            ]
+          },
+          {
+            title: 'Popular Pages With Weak Engagement',
+            description: 'Pages people visit, but may need clearer next steps.',
+            items: [
+              '/60-minute-meeting: 40% engagement',
+              '/30-minute-consultation: low engagement',
+              'Squarespace plugins post: add stronger CTA'
+            ]
+          }
+        ],
+        nextSteps: [
+          { title: 'Recommendation placeholder', reason: 'Reason placeholder tied to one clear metric above.' },
+          { title: 'Recommendation placeholder', reason: 'Reason placeholder tied to one clear metric above.' },
+          { title: 'Recommendation placeholder', reason: 'Reason placeholder tied to one clear metric above.' }
+        ]
+      }
+    };
+
+    const dashboardState = {};
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function formatNumber(value) {
+      return Number(value).toLocaleString();
+    }
+
+    function metricTitle(item) {
+      const title = escapeHtml(item.title);
+      return item.help ? `<abbr title="${escapeHtml(item.help)}">${title}</abbr>` : title;
+    }
+
+    function renderSnapshot(items) {
+      return `
+        <section class="snapshot" aria-label="Top snapshot">
+          ${items.map((item) => `
+            <article class="snapshot-card">
+              <div class="metric-label"><h2>${metricTitle(item)}</h2></div>
+              <strong class="primary-number">${escapeHtml(item.primary)}</strong>
+              <p class="metric-caption">${escapeHtml(item.caption)}</p>
+              ${item.secondary ? `<strong class="secondary-number">${escapeHtml(item.secondary)}</strong>` : ''}
+              <span class="change ${escapeHtml(item.tone || '')}">${item.tone === 'bad' ? '▼' : '▲'} ${escapeHtml(item.change)}</span>
+            </article>
+          `).join('')}
+        </section>
+      `;
+    }
+
+    function renderSortToggle(tableId, sortBy) {
+      return `
+        <div class="sort-toggle" aria-label="Sort ${escapeHtml(tableId)}">
+          <button type="button" data-sort-table="${escapeHtml(tableId)}" data-sort-by="clicks" aria-pressed="${sortBy === 'clicks'}">Clicks</button>
+          <button type="button" data-sort-table="${escapeHtml(tableId)}" data-sort-by="impressions" aria-pressed="${sortBy === 'impressions'}">Impressions</button>
+        </div>
+      `;
+    }
+
+    function sortedRows(rows, sortBy) {
+      return [...rows].sort((a, b) => Number(b[sortBy]) - Number(a[sortBy]));
+    }
+
+    function renderKeywords(data, sortBy) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Keywords</h2>
+              <p class="table-caption">What people searched before seeing or clicking ${escapeHtml(data.clientName)}.</p>
+            </div>
+            ${renderSortToggle('keywords', sortBy)}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th>Clicks</th>
+                <th>Impressions</th>
+                <th>CTR</th>
+                <th>Avg position</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedRows(data.keywords, sortBy).map((row) => `
+                <tr>
+                  <td data-label="Keyword"><span class="row-title">${escapeHtml(row.keyword)}</span></td>
+                  <td data-label="Clicks">${formatNumber(row.clicks)}</td>
+                  <td data-label="Impressions">${formatNumber(row.impressions)}</td>
+                  <td data-label="CTR">${escapeHtml(row.ctr)}</td>
+                  <td data-label="Avg position">${escapeHtml(row.position)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function renderPages(data, sortBy) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Pages</h2>
+              <p class="table-caption">The page paths that appeared in Google and brought people to the site.</p>
+            </div>
+            ${renderSortToggle('pages', sortBy)}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Page</th>
+                <th>Clicks</th>
+                <th>Impressions</th>
+                <th>CTR</th>
+                <th>Avg position</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedRows(data.pages, sortBy).map((row) => `
+                <tr>
+                  <td data-label="Page"><span class="row-title">${escapeHtml(row.path)}</span></td>
+                  <td data-label="Clicks">${formatNumber(row.clicks)}</td>
+                  <td data-label="Impressions">${formatNumber(row.impressions)}</td>
+                  <td data-label="CTR">${escapeHtml(row.ctr)}</td>
+                  <td data-label="Avg position">${escapeHtml(row.position)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function renderTrafficSources(rows) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Traffic Sources</h2>
+              <p class="table-caption">Where visitors came from before reaching the site.</p>
+            </div>
+          </div>
+          <table class="compact-table">
+            <thead>
+              <tr>
+                <th>Source</th>
+                <th>Users</th>
+                <th>New users</th>
+                <th>Engagement</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td data-label="Source">${escapeHtml(row.source)}</td>
+                  <td data-label="Users">${formatNumber(row.users)}</td>
+                  <td data-label="New users">${formatNumber(row.newUsers)}</td>
+                  <td data-label="Engagement">${escapeHtml(row.engagement)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </section>
+      `;
+    }
+
+    function renderKeyActions(rows) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Key Actions</h2>
+              <p class="table-caption">Business actions worth tracking every month.</p>
+            </div>
+          </div>
+          <ul class="stat-list">
+            ${rows.map((row) => `
+              <li class="stat-row">
+                <span>${escapeHtml(row.label)}</span>
+                <strong>${formatNumber(row.value)}</strong>
+              </li>
+            `).join('')}
+          </ul>
+        </section>
+      `;
+    }
+
+    function renderHistory(rows) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Six-Month Snapshot</h2>
+              <p class="table-caption">Stored monthly data makes the top numbers easier to understand over time.</p>
+            </div>
+          </div>
+          <div class="history-row">
+            ${rows.map((row) => `
+              <article class="history-month">
+                <h3>${escapeHtml(row.month)}</h3>
+                <p><strong>${escapeHtml(row.impressions)}</strong> impressions</p>
+                <p class="plain-note">${formatNumber(row.clicks)} clicks</p>
+              </article>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderOpportunities(rows) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Opportunities</h2>
+              <p class="table-caption">Short data lists that point to where attention may be useful.</p>
+            </div>
+          </div>
+          <div class="opportunity-grid">
+            ${rows.map((card) => `
+              <article class="opportunity-card">
+                <h3>${escapeHtml(card.title)}</h3>
+                <p class="secondary">${escapeHtml(card.description)}</p>
+                <ul class="mini-list">
+                  ${card.items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}
+                </ul>
+              </article>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderNextSteps(rows) {
+      return `
+        <section class="section">
+          <div class="section-header">
+            <div>
+              <h2>Next Steps</h2>
+              <p class="table-caption">Placeholder cards for later notes or AI/manual recommendations.</p>
+            </div>
+          </div>
+          <div class="next-step-grid">
+            ${rows.map((card) => `
+              <article class="next-step-card">
+                <h3>${escapeHtml(card.title)}</h3>
+                <p>${escapeHtml(card.reason)}</p>
+              </article>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderDashboard(root, data, state) {
+      root.classList.add('client-dashboard');
+      root.innerHTML = `
+        <header class="report-header">
+          <p class="muted">Monthly Analytics Dashboard</p>
+          <h1>${escapeHtml(data.clientName)}</h1>
+          <p>${escapeHtml(data.reportLabel)}, compared with ${escapeHtml(data.comparisonLabel)}</p>
+        </header>
+        <p class="story-lede">${escapeHtml(data.lede)}</p>
+        ${renderSnapshot(data.snapshot)}
+        ${renderKeywords(data, state.keywordsSort)}
+        ${renderPages(data, state.pagesSort)}
+        <div class="split-row">
+          ${renderTrafficSources(data.trafficSources)}
+          ${renderKeyActions(data.keyActions)}
+        </div>
+        ${renderHistory(data.history)}
+        ${renderOpportunities(data.opportunities)}
+        ${renderNextSteps(data.nextSteps)}
+      `;
+    }
+
+    function mountClientDashboard(root) {
+      const clientId = root.getAttribute('data-client-id');
+      const data = CLIENT_DASHBOARD_DATA[clientId];
+
+      if (!data) {
+        root.textContent = `No dashboard data found for client: ${clientId}`;
+        return;
+      }
+
+      dashboardState[clientId] = dashboardState[clientId] || {
+        keywordsSort: 'clicks',
+        pagesSort: 'clicks'
+      };
+
+      renderDashboard(root, data, dashboardState[clientId]);
+
+      root.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-sort-table]');
+        if (!button) return;
+
+        const tableId = button.getAttribute('data-sort-table');
+        const sortBy = button.getAttribute('data-sort-by');
+        dashboardState[clientId][`${tableId}Sort`] = sortBy;
+        renderDashboard(root, data, dashboardState[clientId]);
+      });
+    }
+
+    document.querySelectorAll('[data-client-dashboard]').forEach(mountClientDashboard);
+  </script>
+</body>
+</html>

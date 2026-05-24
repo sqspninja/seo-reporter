@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bergen Design Client Dashboard V2</title>
+  <style>
+    :root {
+      --gap: 1rem;
+      --line: 1px solid currentColor;
+      --muted: color-mix(in srgb, currentColor 62%, transparent);
+      --good: #176b3a;
+      --bad: #9d3b27;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+
+    .dashboard {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+
+    .report-header,
+    .section,
+    .story-grid,
+    .kpi-grid,
+    .two-column,
+    .action-grid,
+    .source-list,
+    .trend-list {
+      display: grid;
+      gap: var(--gap);
+    }
+
+    .report-header {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+      border-bottom: var(--line);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { line-height: 1.1; }
+    p:last-child { margin-bottom: 0; }
+
+    .muted,
+    .metric-note,
+    .delta-context,
+    .table-note,
+    .caption {
+      color: var(--muted);
+    }
+
+    .period-control {
+      border: var(--line);
+      padding: 0.65rem 0.85rem;
+      display: grid;
+      gap: 0.15rem;
+    }
+
+    .headline {
+      border: var(--line);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .headline p {
+      max-width: 68ch;
+    }
+
+    .kpi-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      margin-bottom: 1rem;
+    }
+
+    .kpi,
+    .section,
+    .story-card,
+    .action-card {
+      border: var(--line);
+      padding: 1rem;
+    }
+
+    .metric-title {
+      display: flex;
+      gap: 0.35rem;
+      align-items: baseline;
+      margin-bottom: 0.45rem;
+    }
+
+    .metric-title abbr,
+    .inline-help abbr {
+      text-decoration: underline dotted;
+      text-underline-offset: 0.18em;
+      cursor: help;
+    }
+
+    .metric-value {
+      display: block;
+      font-size: clamp(1.7rem, 3vw, 2.75rem);
+      line-height: 1;
+      margin-bottom: 0.45rem;
+    }
+
+    .delta {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      border: var(--line);
+      padding: 0.25rem 0.45rem;
+      margin-top: 0.65rem;
+      font-size: 0.9rem;
+    }
+
+    .delta.good { color: var(--good); }
+    .delta.bad { color: var(--bad); }
+
+    .story-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .two-column {
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+      align-items: start;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+      border-bottom: var(--line);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-top: var(--line);
+      padding: 0.65rem 0.45rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:last-child,
+    td:last-child {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .path {
+      overflow-wrap: anywhere;
+    }
+
+    .source-list,
+    .trend-list {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .source-list li,
+    .trend-list li {
+      display: grid;
+      gap: 0.45rem;
+      border-top: var(--line);
+      padding: 0.8rem 0;
+    }
+
+    .source-row,
+    .trend-row {
+      display: grid;
+      grid-template-columns: 7rem minmax(4rem, var(--size)) 1fr auto;
+      gap: 0.55rem;
+      align-items: center;
+    }
+
+    .source-row::before,
+    .trend-row::before {
+      content: "";
+      display: block;
+      height: 0.5rem;
+      border: var(--line);
+      background: currentColor;
+    }
+
+    .action-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.75rem;
+    }
+
+    .badge {
+      border: var(--line);
+      padding: 0.25rem 0.45rem;
+      font-size: 0.85rem;
+    }
+
+    details {
+      border-top: var(--line);
+      padding-top: 0.75rem;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: minmax(8rem, 0.25fr) minmax(0, 1fr);
+      gap: 0.6rem 1rem;
+      margin-bottom: 0;
+    }
+
+    dt { font-weight: 700; }
+    dd { margin: 0; color: var(--muted); }
+
+    @media (max-width: 900px) {
+      .report-header,
+      .kpi-grid,
+      .story-grid,
+      .two-column,
+      .action-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .source-row,
+      .trend-row {
+        grid-template-columns: 5rem minmax(3rem, var(--size)) 1fr;
+      }
+
+      .source-row strong,
+      .trend-row strong {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="dashboard" data-seo-dashboard data-client-id="bergen_design">
+    <header class="report-header">
+      <div>
+        <p class="muted">Monthly website visibility report</p>
+        <h1>Bergen Design</h1>
+        <p>April 2026 performance, compared with March 2026.</p>
+      </div>
+      <div class="period-control" aria-label="Selected report period">
+        <span class="muted">Viewing</span>
+        <strong>April 2026</strong>
+      </div>
+    </header>
+
+    <section class="headline" aria-label="Executive summary">
+      <h2>More people saw Bergen Design in Google this month, and search clicks reached the strongest point in the six-month demo view.</h2>
+      <p>Website visits were slightly lower than March, but Google visibility improved: the site appeared more often in search, average ranking moved up, and the Squarespace plugin content continued to bring in the most discovery traffic.</p>
+    </section>
+
+    <section class="kpi-grid" aria-label="Main performance numbers">
+      <article class="kpi">
+        <div class="metric-title">
+          <h3>Website visits</h3>
+        </div>
+        <strong class="metric-value">56</strong>
+        <p class="metric-note">How many separate visits happened on your site.</p>
+        <span class="delta bad">▼ -8.2%</span>
+        <p class="delta-context">vs March 2026</p>
+      </article>
+
+      <article class="kpi">
+        <div class="metric-title">
+          <h3>Organic Google visits</h3>
+        </div>
+        <strong class="metric-value">91</strong>
+        <p class="metric-note">People who clicked from regular Google search results.</p>
+        <span class="delta good">▲ +3.4%</span>
+        <p class="delta-context">vs March 2026</p>
+      </article>
+
+      <article class="kpi">
+        <div class="metric-title">
+          <h3><abbr title="How many times your site appeared in Google search results, even when no one clicked.">Search visibility</abbr></h3>
+        </div>
+        <strong class="metric-value">13,578</strong>
+        <p class="metric-note">Your site showed up in Google results this many times.</p>
+        <span class="delta good">▲ +4.6%</span>
+        <p class="delta-context">vs March 2026</p>
+      </article>
+
+      <article class="kpi">
+        <div class="metric-title">
+          <h3><abbr title="The average spot where your site appeared in Google. Lower numbers are better: 1 is the top result.">Google ranking average</abbr></h3>
+        </div>
+        <strong class="metric-value">9.57</strong>
+        <p class="metric-note">Average position in Google. Lower is better.</p>
+        <span class="delta good">▲ Improved 3.3%</span>
+        <p class="delta-context">from 9.90 in March</p>
+      </article>
+
+      <article class="kpi">
+        <div class="metric-title">
+          <h3><abbr title="Important actions on your site, such as bookings, forms, phone taps, or other tracked goals.">Valuable actions</abbr></h3>
+        </div>
+        <strong class="metric-value">9</strong>
+        <p class="metric-note">Tracked actions that may lead to a real inquiry.</p>
+        <span class="delta good">▲ +12.5%</span>
+        <p class="delta-context">demo comparison</p>
+      </article>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>What to take away</h2>
+        <p class="table-note">Plain-English readout</p>
+      </div>
+      <div class="story-grid">
+        <article class="story-card">
+          <h3>Google is showing the site more often.</h3>
+          <p>Search visibility is up, which means Bergen Design is appearing in more searches. That is the first step before more people can click.</p>
+        </article>
+        <article class="story-card">
+          <h3>Squarespace content is doing the heavy lifting.</h3>
+          <p>The top search terms and pages are mostly Squarespace-related. That tells us what Google already understands the site for.</p>
+        </article>
+        <article class="story-card">
+          <h3>The next move is turning readers into leads.</h3>
+          <p>Because blog content is bringing discovery traffic, the best next step is clearer paths from those posts into consultation or contact actions.</p>
+        </article>
+      </div>
+    </section>
+
+    <div class="two-column">
+      <section class="section">
+        <div class="section-header">
+          <h2>Top search terms</h2>
+          <p class="table-note">What people typed into Google</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Search term</th>
+              <th>Clicks</th>
+              <th>Visibility</th>
+              <th>Avg rank</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>squarespace plugins</td>
+              <td>9</td>
+              <td>949</td>
+              <td>8.89</td>
+            </tr>
+            <tr>
+              <td>best squarespace plugins</td>
+              <td>3</td>
+              <td>118</td>
+              <td>7.14</td>
+            </tr>
+            <tr>
+              <td>squarespace plugin</td>
+              <td>3</td>
+              <td>52</td>
+              <td>8.62</td>
+            </tr>
+            <tr>
+              <td>plugins for squarespace</td>
+              <td>2</td>
+              <td>27</td>
+              <td>8.63</td>
+            </tr>
+            <tr>
+              <td>web design near me</td>
+              <td>2</td>
+              <td>6</td>
+              <td>15.33</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="caption">Takeaway: Google is mostly finding Bergen Design for Squarespace expertise, with some early local service visibility.</p>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2>Top performing pages</h2>
+          <p class="table-note">Pages bringing search traffic</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Page</th>
+              <th>Clicks</th>
+              <th>Avg rank</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="path">/blog/my-top-10-favorite-squarespace-plugins</td>
+              <td>53</td>
+              <td>6.98</td>
+            </tr>
+            <tr>
+              <td class="path">/blog/squarespace-permissions-explained...</td>
+              <td>18</td>
+              <td>6.45</td>
+            </tr>
+            <tr>
+              <td class="path">/</td>
+              <td>16</td>
+              <td>16.79</td>
+            </tr>
+            <tr>
+              <td class="path">/web-design-paramus-nj</td>
+              <td>3</td>
+              <td>10.57</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="caption">Takeaway: the blog is currently the strongest doorway from Google. The homepage has visibility but needs ranking and click improvement.</p>
+      </section>
+    </div>
+
+    <div class="two-column">
+      <section class="section">
+        <div class="section-header">
+          <h2>Where visitors came from</h2>
+          <p class="table-note">Traffic sources</p>
+        </div>
+        <ul class="source-list">
+          <li>
+            <div class="source-row" style="--size: 58%;">
+              <span>Organic</span>
+              <strong>Most visits</strong>
+            </div>
+            <p class="caption">Regular search traffic. This is the channel SEO is meant to grow.</p>
+          </li>
+          <li>
+            <div class="source-row" style="--size: 28%;">
+              <span>Direct</span>
+              <strong>Second</strong>
+            </div>
+            <p class="caption">People who typed the URL, used a bookmark, or came from a source Google could not label.</p>
+          </li>
+          <li>
+            <div class="source-row" style="--size: 10%;">
+              <span>Referral</span>
+              <strong>Small</strong>
+            </div>
+            <p class="caption">Visitors from links on other websites.</p>
+          </li>
+          <li>
+            <div class="source-row" style="--size: 4%;">
+              <span>Social</span>
+              <strong>Light</strong>
+            </div>
+            <p class="caption">Visitors from social platforms. Useful, but not the main channel this month.</p>
+          </li>
+        </ul>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <h2>What visitors did</h2>
+          <p class="table-note">Site behavior</p>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Landing page</th>
+              <th>Visits</th>
+              <th>Engaged visits</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="path">/</td>
+              <td>14</td>
+              <td>92.9%</td>
+            </tr>
+            <tr>
+              <td class="path">/blog/my-top-10-favorite-squarespace-plugins</td>
+              <td>14</td>
+              <td>64.3%</td>
+            </tr>
+            <tr>
+              <td class="path">/blog/squarespace-permissions-explained...</td>
+              <td>8</td>
+              <td>62.5%</td>
+            </tr>
+            <tr>
+              <td class="path">/60-minute-meeting</td>
+              <td>5</td>
+              <td>40.0%</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="caption inline-help">Takeaway: <abbr title="An engaged visit means someone stayed at least 10 seconds, viewed more than one page, or triggered an event. Higher is better.">engaged visits</abbr> are strongest on the homepage. Blog posts are doing enough to deserve stronger next-step links.</p>
+      </section>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Six-month direction</h2>
+        <p class="table-note">Demo historical values until backfill completes; April is real data</p>
+      </div>
+      <ul class="trend-list">
+        <li>
+          <div class="trend-row" style="--size: 59%;">
+            <span>Nov</span>
+            <strong>54 Google clicks</strong>
+          </div>
+        </li>
+        <li>
+          <div class="trend-row" style="--size: 54%;">
+            <span>Dec</span>
+            <strong>49 Google clicks</strong>
+          </div>
+        </li>
+        <li>
+          <div class="trend-row" style="--size: 75%;">
+            <span>Jan</span>
+            <strong>68 Google clicks</strong>
+          </div>
+        </li>
+        <li>
+          <div class="trend-row" style="--size: 81%;">
+            <span>Feb</span>
+            <strong>74 Google clicks</strong>
+          </div>
+        </li>
+        <li>
+          <div class="trend-row" style="--size: 97%;">
+            <span>Mar</span>
+            <strong>88 Google clicks</strong>
+          </div>
+        </li>
+        <li>
+          <div class="trend-row" style="--size: 100%;">
+            <span>Apr</span>
+            <strong>91 Google clicks</strong>
+          </div>
+        </li>
+      </ul>
+      <p class="caption">Takeaway: the story we want the client to see is not one isolated month. It is whether the important numbers are moving in the right direction over time.</p>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>Recommended next steps</h2>
+        <p class="table-note">Start here</p>
+      </div>
+      <div class="action-grid">
+        <article class="action-card">
+          <h3>Add stronger next steps to the top Squarespace blog post.</h3>
+          <p>Why: it drove 53 Google clicks, but readers need a clearer path into a consultation or contact action.</p>
+          <div class="badge-row">
+            <span class="badge">Owner: Me</span>
+            <span class="badge">Effort: S</span>
+          </div>
+        </article>
+        <article class="action-card">
+          <h3>Improve homepage search title and description.</h3>
+          <p>Why: the homepage has 3,332 search appearances but a weaker average rank. Better copy may improve click-through.</p>
+          <div class="badge-row">
+            <span class="badge">Owner: Me</span>
+            <span class="badge">Effort: S</span>
+          </div>
+        </article>
+        <article class="action-card">
+          <h3>Pick one local service page to support next month.</h3>
+          <p>Why: “web design near me” is showing early signs, but the ranking is still low enough that most people will not see it yet.</p>
+          <div class="badge-row">
+            <span class="badge">Owner: Both</span>
+            <span class="badge">Effort: M</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <h2>What these words mean</h2>
+        <p class="table-note">Reference</p>
+      </div>
+      <details>
+        <summary>Open glossary</summary>
+        <dl>
+          <dt>Organic Google visits</dt>
+          <dd>People who found the site in regular Google results and clicked. These are not paid ads.</dd>
+          <dt>Search visibility</dt>
+          <dd>How many times the site appeared in Google results. It is exposure, even if no one clicked.</dd>
+          <dt>Google ranking average</dt>
+          <dd>The average spot where the site appeared in search. Lower is better: 1 is the top result.</dd>
+          <dt>Engaged visit</dt>
+          <dd>A visit where someone stayed, viewed more than one page, or triggered a tracked action.</dd>
+          <dt>Valuable action</dt>
+          <dd>A tracked action that matters to the business, such as a form, booking, phone tap, or signup.</dd>
+        </dl>
+      </details>
+    </section>
+  </main>
+</body>
+</html>

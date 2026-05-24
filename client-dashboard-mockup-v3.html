@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Client Analytics Dashboard Mockup V3</title>
+  <style>
+    :root {
+      --gap: 1rem;
+      --line: 1px solid currentColor;
+      --muted: color-mix(in srgb, currentColor 62%, transparent);
+      --good: #176b3a;
+      --bad: #9d3b27;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+
+    .client-dashboard {
+      width: min(1120px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+
+    .report-header,
+    .snapshot,
+    .section,
+    .split-row,
+    .opportunity-grid,
+    .next-step-grid {
+      display: grid;
+      gap: var(--gap);
+    }
+
+    .report-header {
+      border-bottom: var(--line);
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .story-lede {
+      max-width: 72ch;
+      margin: 0 0 1.25rem;
+    }
+
+    .snapshot {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-bottom: 1rem;
+    }
+
+    .snapshot-card,
+    .section,
+    .opportunity-card,
+    .next-step-card {
+      border: var(--line);
+      padding: 1rem;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { line-height: 1.1; }
+    p:last-child { margin-bottom: 0; }
+
+    .muted,
+    .metric-caption,
+    .table-caption,
+    .secondary,
+    .data-note {
+      color: var(--muted);
+    }
+
+    .metric-label {
+      display: flex;
+      gap: 0.35rem;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    abbr {
+      cursor: help;
+      text-decoration: underline dotted;
+      text-underline-offset: 0.18em;
+    }
+
+    .primary-number {
+      display: block;
+      font-size: clamp(2.1rem, 5vw, 4rem);
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .secondary-number {
+      display: block;
+      margin: 0.35rem 0 0.5rem;
+    }
+
+    .change {
+      display: inline-flex;
+      gap: 0.35rem;
+      align-items: center;
+      border: var(--line);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .change.good { color: var(--good); }
+    .change.bad { color: var(--bad); }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: baseline;
+      border-bottom: var(--line);
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+    }
+
+    .sort-toggle {
+      display: inline-flex;
+      border: var(--line);
+    }
+
+    .sort-toggle button {
+      appearance: none;
+      border: 0;
+      border-right: var(--line);
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      padding: 0.45rem 0.65rem;
+      font: inherit;
+    }
+
+    .sort-toggle button:last-child {
+      border-right: 0;
+    }
+
+    .sort-toggle button[aria-pressed="true"] {
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 0.18em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border-top: var(--line);
+      padding: 0.7rem 0.5rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: 44%;
+    }
+
+    th:not(:first-child),
+    td:not(:first-child) {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .row-title {
+      display: block;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .row-subtitle {
+      display: block;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+      margin-top: 0.2rem;
+    }
+
+    .split-row {
+      grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.42fr);
+      align-items: start;
+    }
+
+    .compact-table th,
+    .compact-table td {
+      padding: 0.6rem 0.35rem;
+    }
+
+    .stat-list {
+      display: grid;
+      gap: 0.75rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: minmax(8rem, 1fr) auto;
+      gap: 1rem;
+      border-top: var(--line);
+      padding-top: 0.75rem;
+    }
+
+    .opportunity-grid,
+    .next-step-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mini-list {
+      margin: 0;
+      padding-left: 1.1rem;
+    }
+
+    .mini-list li + li {
+      margin-top: 0.45rem;
+    }
+
+    .data-note {
+      border-top: var(--line);
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 820px) {
+      .snapshot,
+      .split-row,
+      .opportunity-grid,
+      .next-step-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        display: grid;
+      }
+
+      table,
+      thead,
+      tbody,
+      tr,
+      th,
+      td {
+        display: block;
+      }
+
+      thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+
+      tr {
+        border-top: var(--line);
+        padding: 0.7rem 0;
+      }
+
+      td,
+      th,
+      th:first-child,
+      td:first-child,
+      th:not(:first-child),
+      td:not(:first-child) {
+        width: 100%;
+        border-top: 0;
+        padding: 0.25rem 0;
+        text-align: left;
+        white-space: normal;
+      }
+
+      td[data-label]::before {
+        content: attr(data-label) ": ";
+        font-weight: 700;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="client-dashboard" data-client-dashboard data-client-id="bergen_design">
+    <header class="report-header">
+      <p class="muted">Monthly Analytics Dashboard</p>
+      <h1>Bergen Design</h1>
+      <p>April 2026, compared with March 2026</p>
+    </header>
+
+    <p class="story-lede">This month, Google showed Bergen Design more often and search clicks reached the strongest point in the six-month demo view. The main opportunity is turning search visibility into more qualified contact and consultation actions.</p>
+
+    <section class="snapshot" aria-label="Top snapshot">
+      <article class="snapshot-card">
+        <div class="metric-label">
+          <h2><abbr title="How many times your site appeared in Google search results, whether or not someone clicked.">Search Performance</abbr></h2>
+        </div>
+        <strong class="primary-number">13,578</strong>
+        <p class="metric-caption">Times Bergen Design appeared in Google search results.</p>
+        <strong class="secondary-number">91 clicks from Google</strong>
+        <span class="change good">▲ +4.6% visibility vs last month</span>
+      </article>
+
+      <article class="snapshot-card">
+        <div class="metric-label">
+          <h2>New Visitors</h2>
+        </div>
+        <strong class="primary-number">37</strong>
+        <p class="metric-caption">People discovering or visiting the site this month. This card should use GA4 new users once added.</p>
+        <span class="change good">▲ +8.8% vs last month</span>
+      </article>
+
+      <article class="snapshot-card">
+        <div class="metric-label">
+          <h2><abbr title="The average spot where your site appeared in Google. Lower numbers are better: 1 is the top result.">Average Google Position</abbr></h2>
+        </div>
+        <strong class="primary-number">9.57</strong>
+        <p class="metric-caption">Average ranking in Google. Lower is better.</p>
+        <strong class="secondary-number">Previous month: 9.90</strong>
+        <span class="change good">▲ Improved 3.3%</span>
+      </article>
+    </section>
+
+    <section class="section sortable-section" data-sortable-section>
+      <div class="section-header">
+        <div>
+          <h2>Keywords</h2>
+          <p class="table-caption">What people searched before seeing or clicking Bergen Design.</p>
+        </div>
+        <div class="sort-toggle" aria-label="Sort keywords">
+          <button type="button" data-sort-table="keywords" data-sort-by="clicks" aria-pressed="true">Clicks</button>
+          <button type="button" data-sort-table="keywords" data-sort-by="impressions" aria-pressed="false">Impressions</button>
+        </div>
+      </div>
+      <table data-sort-table-id="keywords">
+        <thead>
+          <tr>
+            <th>Keyword</th>
+            <th>Clicks</th>
+            <th>Impressions</th>
+            <th>CTR</th>
+            <th>Avg position</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-clicks="9" data-impressions="949">
+            <td data-label="Keyword"><span class="row-title">squarespace plugins</span></td>
+            <td data-label="Clicks">9</td>
+            <td data-label="Impressions">949</td>
+            <td data-label="CTR">0.95%</td>
+            <td data-label="Avg position">8.89</td>
+          </tr>
+          <tr data-clicks="3" data-impressions="118">
+            <td data-label="Keyword"><span class="row-title">best squarespace plugins</span></td>
+            <td data-label="Clicks">3</td>
+            <td data-label="Impressions">118</td>
+            <td data-label="CTR">2.54%</td>
+            <td data-label="Avg position">7.14</td>
+          </tr>
+          <tr data-clicks="3" data-impressions="52">
+            <td data-label="Keyword"><span class="row-title">squarespace plugin</span></td>
+            <td data-label="Clicks">3</td>
+            <td data-label="Impressions">52</td>
+            <td data-label="CTR">5.77%</td>
+            <td data-label="Avg position">8.62</td>
+          </tr>
+          <tr data-clicks="2" data-impressions="29">
+            <td data-label="Keyword"><span class="row-title">squarespace blog plugins</span></td>
+            <td data-label="Clicks">2</td>
+            <td data-label="Impressions">29</td>
+            <td data-label="CTR">6.90%</td>
+            <td data-label="Avg position">6.24</td>
+          </tr>
+          <tr data-clicks="2" data-impressions="27">
+            <td data-label="Keyword"><span class="row-title">plugins for squarespace</span></td>
+            <td data-label="Clicks">2</td>
+            <td data-label="Impressions">27</td>
+            <td data-label="CTR">7.41%</td>
+            <td data-label="Avg position">8.63</td>
+          </tr>
+          <tr data-clicks="2" data-impressions="6">
+            <td data-label="Keyword"><span class="row-title">web design near me</span></td>
+            <td data-label="Clicks">2</td>
+            <td data-label="Impressions">6</td>
+            <td data-label="CTR">33.33%</td>
+            <td data-label="Avg position">15.33</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section sortable-section" data-sortable-section>
+      <div class="section-header">
+        <div>
+          <h2>Pages</h2>
+          <p class="table-caption">The pages that appeared in Google and brought people to the site.</p>
+        </div>
+        <div class="sort-toggle" aria-label="Sort pages">
+          <button type="button" data-sort-table="pages" data-sort-by="clicks" aria-pressed="true">Clicks</button>
+          <button type="button" data-sort-table="pages" data-sort-by="impressions" aria-pressed="false">Impressions</button>
+        </div>
+      </div>
+      <table data-sort-table-id="pages">
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>Clicks</th>
+            <th>Impressions</th>
+            <th>CTR</th>
+            <th>Avg position</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-clicks="53" data-impressions="4061">
+            <td data-label="Page">
+              <span class="row-title">Top 10 Favorite Squarespace Plugins</span>
+              <span class="row-subtitle">/blog/my-top-10-favorite-squarespace-plugins</span>
+            </td>
+            <td data-label="Clicks">53</td>
+            <td data-label="Impressions">4,061</td>
+            <td data-label="CTR">1.31%</td>
+            <td data-label="Avg position">6.98</td>
+          </tr>
+          <tr data-clicks="18" data-impressions="3921">
+            <td data-label="Page">
+              <span class="row-title">Squarespace Permissions Explained</span>
+              <span class="row-subtitle">/blog/squarespace-permissions-explained...</span>
+            </td>
+            <td data-label="Clicks">18</td>
+            <td data-label="Impressions">3,921</td>
+            <td data-label="CTR">0.46%</td>
+            <td data-label="Avg position">6.45</td>
+          </tr>
+          <tr data-clicks="16" data-impressions="3332">
+            <td data-label="Page">
+              <span class="row-title">Homepage</span>
+              <span class="row-subtitle">/</span>
+            </td>
+            <td data-label="Clicks">16</td>
+            <td data-label="Impressions">3,332</td>
+            <td data-label="CTR">0.48%</td>
+            <td data-label="Avg position">16.79</td>
+          </tr>
+          <tr data-clicks="3" data-impressions="222">
+            <td data-label="Page">
+              <span class="row-title">Web Design Paramus NJ</span>
+              <span class="row-subtitle">/web-design-paramus-nj</span>
+            </td>
+            <td data-label="Clicks">3</td>
+            <td data-label="Impressions">222</td>
+            <td data-label="CTR">1.35%</td>
+            <td data-label="Avg position">10.57</td>
+          </tr>
+          <tr data-clicks="1" data-impressions="194">
+            <td data-label="Page">
+              <span class="row-title">Change Internal Built-In Domain in Squarespace</span>
+              <span class="row-subtitle">/blog/how-to-change-your-internal-built-in-domain...</span>
+            </td>
+            <td data-label="Clicks">1</td>
+            <td data-label="Impressions">194</td>
+            <td data-label="CTR">0.52%</td>
+            <td data-label="Avg position">8.21</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="split-row">
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>Traffic Sources</h2>
+            <p class="table-caption">Where visitors came from before reaching the site.</p>
+          </div>
+        </div>
+        <table class="compact-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Users</th>
+              <th>New users</th>
+              <th>Engagement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Source">Organic Search</td>
+              <td data-label="Users">24</td>
+              <td data-label="New users">20</td>
+              <td data-label="Engagement">64%</td>
+            </tr>
+            <tr>
+              <td data-label="Source">Direct</td>
+              <td data-label="Users">8</td>
+              <td data-label="New users">6</td>
+              <td data-label="Engagement">58%</td>
+            </tr>
+            <tr>
+              <td data-label="Source">Referral</td>
+              <td data-label="Users">3</td>
+              <td data-label="New users">3</td>
+              <td data-label="Engagement">67%</td>
+            </tr>
+            <tr>
+              <td data-label="Source">Social</td>
+              <td data-label="Users">2</td>
+              <td data-label="New users">2</td>
+              <td data-label="Engagement">50%</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <div class="section-header">
+          <div>
+            <h2>Key Actions</h2>
+            <p class="table-caption">Business actions worth tracking every month.</p>
+          </div>
+        </div>
+        <ul class="stat-list">
+          <li class="stat-row">
+            <span>Booking / consultation clicks</span>
+            <strong>5</strong>
+          </li>
+          <li class="stat-row">
+            <span>Contact page visits</span>
+            <strong>2</strong>
+          </li>
+          <li class="stat-row">
+            <span>Phone / email clicks</span>
+            <strong>1</strong>
+          </li>
+          <li class="stat-row">
+            <span>Other tracked actions</span>
+            <strong>1</strong>
+          </li>
+        </ul>
+        <p class="data-note">Current script stores total key events only. This mockup assumes a future event breakdown by action name.</p>
+      </section>
+    </div>
+
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <h2>Opportunities</h2>
+          <p class="table-caption">Short diagnosis lists. These explain what to improve, not every detail in the data.</p>
+        </div>
+      </div>
+      <div class="opportunity-grid">
+        <article class="opportunity-card">
+          <h3>High Impressions, Low Clicks</h3>
+          <p class="secondary">Search results are showing, but people are not choosing them often enough.</p>
+          <ul class="mini-list">
+            <li>Homepage: 3,332 impressions, 0.48% CTR</li>
+            <li>Permissions article: 3,921 impressions, 0.46% CTR</li>
+            <li>Domain article: 194 impressions, 0.52% CTR</li>
+          </ul>
+        </article>
+
+        <article class="opportunity-card">
+          <h3>Close Ranking Opportunities</h3>
+          <p class="secondary">Searches close enough to improve with better titles, internal links, or content updates.</p>
+          <ul class="mini-list">
+            <li>squarespace plugins: avg position 8.89</li>
+            <li>web-design-paramus-nj page: avg position 10.57</li>
+            <li>homepage: avg position 16.79</li>
+          </ul>
+        </article>
+
+        <article class="opportunity-card">
+          <h3>Popular Pages With Weak Engagement</h3>
+          <p class="secondary">Pages people visit, but may need clearer next steps.</p>
+          <ul class="mini-list">
+            <li>/60-minute-meeting: 40% engagement</li>
+            <li>/30-minute-consultation: low engagement</li>
+            <li>Squarespace plugins post: add stronger CTA</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="section-header">
+        <div>
+          <h2>Next Steps</h2>
+          <p class="table-caption">Conclusion from the data above.</p>
+        </div>
+      </div>
+      <div class="next-step-grid">
+        <article class="next-step-card">
+          <h3>Rewrite search titles for high-visibility pages.</h3>
+          <p>Reason: the homepage and permissions article show up often, but click-through is low.</p>
+        </article>
+        <article class="next-step-card">
+          <h3>Add stronger contact paths to top blog posts.</h3>
+          <p>Reason: Squarespace content brings the most discovery traffic, so it should point readers toward a consultation.</p>
+        </article>
+        <article class="next-step-card">
+          <h3>Support one local service page next month.</h3>
+          <p>Reason: local terms are showing early signs, but rankings are still too low for consistent traffic.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.querySelectorAll('[data-sort-by]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const tableId = button.getAttribute('data-sort-table');
+        const sortBy = button.getAttribute('data-sort-by');
+        const table = document.querySelector(`[data-sort-table-id="${tableId}"]`);
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        rows
+          .sort((a, b) => Number(b.dataset[sortBy]) - Number(a.dataset[sortBy]))
+          .forEach((row) => tbody.appendChild(row));
+
+        document.querySelectorAll(`[data-sort-table="${tableId}"]`).forEach((toggle) => {
+          toggle.setAttribute('aria-pressed', String(toggle === button));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

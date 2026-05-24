@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monthly Performance Report — Wireframe</title>
+  <!--
+    UNSTYLED WIREFRAME — STRUCTURE ONLY
+    ====================================
+    This file is intentionally unstyled. It uses default browser rendering
+    so the focus is on hierarchy, narrative flow, and what data goes where.
+
+    Inline HTML comments (like this one) annotate which Google Sheet
+    column drives each value. Format:  <!-- [sheet:tab.column] -->
+
+    Replace all "Acme Bakery" / dates / numbers with real client data
+    or, eventually, Google Sheet bindings.
+
+    See 03-design-spec.md for the full reasoning behind every section.
+  -->
+  <style>
+    /* ----------------------------------------------------------
+       LAYOUT-ONLY CSS — no fonts, no colors, no decoration.
+       Just structure: grids, spacing, alignment, borders.
+       ---------------------------------------------------------- */
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+      line-height: 1.45;
+    }
+    header, section, footer, details { margin-bottom: 32px; }
+    hr { margin: 32px 0; border: 0; border-top: 1px solid #ccc; }
+    h1 { margin-bottom: 4px; }
+    h2 { margin: 0 0 12px; }
+    h3 { margin: 16px 0 8px; }
+    h4 { margin: 8px 0 4px; }
+    p, ul, ol, dl { margin: 8px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    th, td { text-align: left; padding: 6px 8px; border: 1px solid #ccc; vertical-align: top; }
+    th { background: #f5f5f5; }
+    code { background: #f0f0f0; padding: 1px 4px; }
+    aside {
+      border: 1px dashed #999;
+      padding: 12px 16px;
+      margin: 12px 0;
+    }
+    summary { cursor: pointer; padding: 8px 0; }
+    summary h2 { margin: 0; }
+
+    /* ----------------------------------------------------------
+       SECTION 3 — KPI tile row: 4 across, collapses to 2 then 1
+       ---------------------------------------------------------- */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .kpi-row article {
+      border: 1px solid #ccc;
+      padding: 16px;
+    }
+    .kpi-number {
+      font-size: 2em;
+      margin: 4px 0;
+    }
+    .sparkline-placeholder {
+      border: 1px dashed #bbb;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+      font-size: 0.85em;
+      color: #666;
+    }
+
+    /* ----------------------------------------------------------
+       SECTION 4 — Visibility: stat blocks side-by-side
+       ---------------------------------------------------------- */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 12px 0;
+    }
+    .stat-row > div {
+      border: 1px solid #ccc;
+      padding: 12px;
+    }
+
+    /* ----------------------------------------------------------
+       SECTION 6 — Engagement: two stats side-by-side
+       ---------------------------------------------------------- */
+    .stat-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 12px 0;
+    }
+    .stat-pair > div {
+      border: 1px solid #ccc;
+      padding: 12px;
+    }
+
+    /* ----------------------------------------------------------
+       SECTION 11 — Next-steps cards: 2 across, collapses to 1
+       ---------------------------------------------------------- */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 12px 0;
+    }
+    .cards article {
+      border: 1px solid #ccc;
+      padding: 12px 16px;
+    }
+    .card-meta {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #eee;
+      font-size: 0.9em;
+    }
+
+    /* ----------------------------------------------------------
+       SECTION 12 — Trends: 12-month chart placeholders in a grid
+       ---------------------------------------------------------- */
+    .trend-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 12px 0;
+    }
+    .chart-placeholder {
+      border: 1px dashed #bbb;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    /* ----------------------------------------------------------
+       Mobile: collapse multi-column grids to single column
+       ---------------------------------------------------------- */
+    @media (max-width: 760px) {
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .stat-row, .stat-pair, .cards, .trend-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .kpi-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     SECTION 1 — HEADER / REPORT META
+     Question answered: "Which month am I looking at?"
+     ============================================================ -->
+<header>
+  <h1>Monthly Performance Report</h1>
+  <p>
+    <strong>Acme Bakery</strong>
+    <!-- [sheet:dashboard_headline.client_id → friendly name] -->
+    &nbsp;|&nbsp;
+    <strong>April 2026</strong>
+    <!-- [sheet:dashboard_headline.report_month formatted as "Month YYYY"] -->
+  </p>
+  <p>
+    Comparing to <strong>March 2026</strong> (last month) and
+    <strong>April 2025</strong> (same month last year).
+  </p>
+  <p><small>Report prepared by Bergen Design Co. &middot; Data through April 30, 2026</small></p>
+</header>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 2 — EXECUTIVE SUMMARY (BLUF)
+     Question answered: "In one sentence — how did we do?"
+     This is the single most important block in the whole report.
+     ============================================================ -->
+<section>
+  <h2>The short version</h2>
+  <p>
+    <!-- [sheet:dashboard_headline.headline_sentence] -->
+    <em>In April, your site reached <strong>1,240 people</strong> and brought in
+    <strong>18 inquiries</strong> — up 14% from last month, and our best
+    month for inquiries since you started with us.</em>
+  </p>
+  <p>
+    <!-- [sheet:dashboard_headline.notes — optional second sentence] -->
+    Most of the growth came from Google search, where new pages we added
+    in March are starting to show up in results.
+  </p>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 3 — HEADLINE KPI ROW (4 TILES)
+     Question answered: "What four numbers should I care about?"
+
+     Each tile follows the same pattern:
+       - Metric name
+       - Big number
+       - Plain-English caption (what this number means)
+       - YoY comparison (vs same month last year)
+       - MoM comparison (vs last month)
+       - 12-month sparkline placeholder
+
+     Three redundant cues for change: arrow + signed % + word ("up"/"down").
+     ============================================================ -->
+<section>
+  <h2>The four numbers</h2>
+
+  <div class="kpi-row">
+
+    <!-- TILE 1: VISITORS -->
+    <article>
+      <h3>Visitors</h3>
+      <p class="kpi-number">
+        <strong>1,240</strong>
+        <!-- [sheet:dashboard_headline.total_users] -->
+      </p>
+      <p><small>How many different people came to your site this month.</small></p>
+      <ul>
+        <li>▲ up <strong>12%</strong> vs April 2025 <small>(was 1,107)</small></li>
+        <li>▲ up <strong>4%</strong> vs last month <small>(was 1,192)</small></li>
+      </ul>
+      <div class="sparkline-placeholder">[12-month sparkline]</div>
+    </article>
+
+    <!-- TILE 2: INQUIRIES (Key Events) -->
+    <article>
+      <h3>Inquiries</h3>
+      <p class="kpi-number">
+        <strong>18</strong>
+        <!-- [sheet:dashboard_headline.key_events] -->
+      </p>
+      <p><small>Form submissions, phone taps, and bookings — the actions that turn into business.</small></p>
+      <ul>
+        <li>▲ up <strong>50%</strong> vs April 2025 <small>(was 12)</small></li>
+        <li>▲ up <strong>14%</strong> vs last month <small>(was 16)</small></li>
+      </ul>
+      <div class="sparkline-placeholder">[12-month sparkline]</div>
+    </article>
+
+    <!-- TILE 3: GOOGLE CLICKS -->
+    <article>
+      <h3>Clicks from Google</h3>
+      <p class="kpi-number">
+        <strong>612</strong>
+        <!-- [sheet:dashboard_headline.gsc_clicks] -->
+      </p>
+      <p><small>How many people clicked through to your site from a Google search result.</small></p>
+      <ul>
+        <li>▲ up <strong>22%</strong> vs April 2025 <small>(was 502)</small></li>
+        <li>▲ up <strong>8%</strong> vs last month <small>(was 567)</small></li>
+      </ul>
+      <div class="sparkline-placeholder">[12-month sparkline]</div>
+    </article>
+
+    <!-- TILE 4: SEO HEALTH SCORE -->
+    <article>
+      <h3>SEO Health Score</h3>
+      <p class="kpi-number">
+        <strong>78 / 100</strong>
+        <!-- [sheet:seospace_audit_summary.overall_score] -->
+      </p>
+      <p><small>A grade for how well your site follows search engine best practices. Higher is better.</small></p>
+      <ul>
+        <li>▲ up <strong>6 points</strong> vs April 2025 <small>(was 72)</small></li>
+        <li>▲ up <strong>2 points</strong> vs last month <small>(was 76)</small></li>
+      </ul>
+      <div class="sparkline-placeholder">[12-month sparkline]</div>
+    </article>
+
+  </div>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 4 — VISIBILITY ON GOOGLE
+     Question answered: "Are more people seeing us in Google search?"
+     Source: Google Search Console
+     ============================================================ -->
+<section>
+  <h2>Are more people seeing you on Google?</h2>
+  <p>
+    Two numbers explain this: how often you <em>showed up</em> in Google
+    (impressions), and where you usually <em>rank</em> when you do.
+  </p>
+
+  <div class="stat-row">
+
+    <!-- IMPRESSIONS -->
+    <div>
+      <h3>Times you appeared in search results</h3>
+      <p class="kpi-number"><strong>14,820</strong></p>
+      <p>
+        <small>
+          An <abbr title="One time your site appeared in a Google search result, whether someone clicked or not.">impression</abbr>
+          is one time your site showed up in someone's Google results.
+        </small>
+      </p>
+      <ul>
+        <li>▲ up 28% vs April 2025 <small>(was 11,580)</small></li>
+        <li>▲ up 9% vs last month <small>(was 13,590)</small></li>
+      </ul>
+    </div>
+
+    <!-- AVERAGE POSITION -->
+    <div>
+      <h3>Your average position</h3>
+      <p class="kpi-number"><strong>8.4</strong></p>
+      <p>
+        <small>
+          Where your site typically shows up on the Google results page.
+          <strong>Lower is better</strong> — position 1 is the top of page one,
+          anything over 10 means you're on page two.
+        </small>
+      </p>
+      <ul>
+        <li>▼ improved 1.2 spots vs April 2025 <small>(was 9.6)</small></li>
+        <li>▼ improved 0.4 spots vs last month <small>(was 8.8)</small></li>
+      </ul>
+    </div>
+
+    <!-- CTR -->
+    <div>
+      <h3>Click-through rate</h3>
+      <p class="kpi-number"><strong>4.1%</strong></p>
+      <p>
+        <small>
+          Of the people who saw you in Google, the percentage who actually clicked.
+          Like a batting average for your search listing.
+        </small>
+      </p>
+      <ul>
+        <li>▲ up 0.3 points vs last month</li>
+        <li>▲ up 0.6 points vs April 2025</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- AI OVERVIEWS CALLOUT — only when ai_overview_observed_flag = TRUE -->
+  <!-- [sheet:gsc_monthly_summary.ai_overview_observed_flag] -->
+  <aside>
+    <h4>Heads up: Google's AI is summarizing your content</h4>
+    <p>
+      Some of your top searches now show a Google AI answer at the top.
+      That's why your impressions can keep climbing even when clicks plateau —
+      people are getting their answer right in the search results without
+      visiting your site. It's still a win for your visibility; it just
+      shows up differently than it used to.
+    </p>
+  </aside>
+
+  <!-- INDEXED PAGES -->
+  <p>
+    <strong>42 pages</strong> indexed by Google
+    <!-- [sheet:gsc_monthly_summary.indexed_pages_count] -->
+    &nbsp;
+    <small>
+      How many pages on your site Google has on file and is willing to show in
+      search results. If a page isn't indexed, it can't be found.
+    </small>
+  </p>
+
+  <h3>The top things people searched to find you</h3>
+  <p><small>Plain-English takeaway: <em>You're showing up most often for "wedding cakes hudson valley" — a non-branded search, which means people who don't already know you are finding you. That's exactly what SEO is supposed to do.</em></small></p>
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr>
+        <th>Search phrase</th>
+        <th>Times shown</th>
+        <th>Clicks</th>
+        <th>Click rate</th>
+        <th>Avg. position</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [sheet:gsc_queries — top 5 by clicks, rank_this_month ≤ 5] -->
+      <tr>
+        <td>wedding cakes hudson valley</td>
+        <td>2,140</td>
+        <td>98</td>
+        <td>4.6%</td>
+        <td>5.2</td>
+      </tr>
+      <tr>
+        <td>acme bakery</td>
+        <td>1,205</td>
+        <td>614</td>
+        <td>51.0%</td>
+        <td>1.1</td>
+      </tr>
+      <tr>
+        <td>custom birthday cakes near me</td>
+        <td>892</td>
+        <td>34</td>
+        <td>3.8%</td>
+        <td>8.7</td>
+      </tr>
+      <tr>
+        <td>sourdough class kingston ny</td>
+        <td>540</td>
+        <td>22</td>
+        <td>4.1%</td>
+        <td>6.4</td>
+      </tr>
+      <tr>
+        <td>best gluten free bakery</td>
+        <td>410</td>
+        <td>8</td>
+        <td>2.0%</td>
+        <td>11.3</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 5 — WHERE VISITORS CAME FROM
+     Question answered: "How are people finding the site?"
+     Source: GA4 channels
+     ============================================================ -->
+<section>
+  <h2>Where did your visitors come from?</h2>
+  <p>
+    Plain-English takeaway:
+    <em>Google search is doing most of the work — about 6 in 10 visitors
+    arrived from a search. That's a healthy mix for a service business
+    investing in SEO.</em>
+  </p>
+
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>What it means</th>
+        <th>Visitors</th>
+        <th>% of total</th>
+        <th>vs last month</th>
+        <th>vs April 2025</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [sheet:ga4_traffic_sources where channel != 'Other', ordered by users desc] -->
+      <tr>
+        <td>Organic search</td>
+        <td>Found you via Google or Bing</td>
+        <td>744</td>
+        <td>60%</td>
+        <td>▲ +6%</td>
+        <td>▲ +18%</td>
+      </tr>
+      <tr>
+        <td>Direct</td>
+        <td>Typed your URL or used a bookmark</td>
+        <td>248</td>
+        <td>20%</td>
+        <td>— flat</td>
+        <td>▲ +3%</td>
+      </tr>
+      <tr>
+        <td>Referral</td>
+        <td>Clicked a link from another website</td>
+        <td>149</td>
+        <td>12%</td>
+        <td>▲ +22%</td>
+        <td>▲ +30%</td>
+      </tr>
+      <tr>
+        <td>Social</td>
+        <td>Clicked through from Instagram, Facebook, etc.</td>
+        <td>74</td>
+        <td>6%</td>
+        <td>▼ −10%</td>
+        <td>▼ −5%</td>
+      </tr>
+      <tr>
+        <td>Email</td>
+        <td>Clicked a link from a newsletter or email</td>
+        <td>25</td>
+        <td>2%</td>
+        <td>▲ +8%</td>
+        <td>▲ +15%</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><small>[Bar chart of channel mix — placeholder]</small></p>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 6 — WHAT VISITORS DID
+     Question answered: "Did they stick around or leave?"
+     Source: GA4 engagement
+     ============================================================ -->
+<section>
+  <h2>What did visitors do once they got there?</h2>
+  <p>
+    Plain-English takeaway:
+    <em>Most visits were engaged ones — people actually read, scrolled, and
+    explored. That tells us the traffic is the right kind, not random clicks.</em>
+  </p>
+
+  <div class="stat-pair">
+
+    <div>
+      <h3>Engagement rate</h3>
+      <p class="kpi-number"><strong>62%</strong></p>
+      <p>
+        <small>
+          The percentage of visits where someone actually stuck around — stayed
+          at least 10 seconds, viewed more than one page, or did something on the
+          site. <strong>Higher is better.</strong> This replaced the old "bounce
+          rate," which worked the opposite way.
+        </small>
+      </p>
+      <ul>
+        <li>▲ up 3 points vs April 2025 <small>(was 59%)</small></li>
+        <li>▲ up 1 point vs last month <small>(was 61%)</small></li>
+        <li>Benchmark: 50–60% is healthy for a small service business — you're above.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3>Average time visitors spent</h3>
+      <p class="kpi-number"><strong>1 min 48 sec</strong></p>
+      <p>
+        <small>
+          How long the average visitor was actively focused on your site (not
+          idle in a background tab).
+        </small>
+      </p>
+      <ul>
+        <li>▲ up 12 sec vs last month</li>
+        <li>▲ up 22 sec vs April 2025</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <h3>Top pages people landed on</h3>
+  <p>
+    <small>
+      The first page someone sees when they arrive at your site — often
+      <em>not</em> the homepage.
+    </small>
+  </p>
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr>
+        <th>Page</th>
+        <th>Visits</th>
+        <th>Engagement rate</th>
+        <th>Inquiries from this page</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [sheet:ga4_landing_pages — top 5 by rank_this_month] -->
+      <tr><td>/wedding-cakes</td><td>312</td><td>71%</td><td>9</td></tr>
+      <tr><td>/ (homepage)</td><td>284</td><td>54%</td><td>4</td></tr>
+      <tr><td>/classes/sourdough</td><td>140</td><td>68%</td><td>3</td></tr>
+      <tr><td>/about</td><td>96</td><td>49%</td><td>1</td></tr>
+      <tr><td>/contact</td><td>78</td><td>82%</td><td>1</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 7 — INQUIRIES & CONVERSIONS
+     Question answered: "Did any of this turn into business?"
+     Source: GA4 key events
+     ============================================================ -->
+<section>
+  <h2>Did any of this turn into business?</h2>
+  <p>
+    Plain-English takeaway:
+    <em>18 inquiries this month — your highest yet. Most came from people who
+    found you through Google search, which is the work paying off directly.</em>
+  </p>
+
+  <h3>Inquiries by source</h3>
+  <p><small>Of the people who came from each source, how many actually got in touch.</small></p>
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Inquiries</th>
+        <th>Conversion rate</th>
+        <th>vs last month</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [sheet:ga4_traffic_sources.key_events + conversion_rate, ordered by key_events desc] -->
+      <tr><td>Organic search</td><td>11</td><td>1.5%</td><td>▲ +2</td></tr>
+      <tr><td>Direct</td><td>4</td><td>1.6%</td><td>— flat</td></tr>
+      <tr><td>Referral</td><td>2</td><td>1.3%</td><td>▲ +1</td></tr>
+      <tr><td>Social</td><td>1</td><td>1.4%</td><td>— flat</td></tr>
+      <tr><td>Email</td><td>0</td><td>0.0%</td><td>— flat</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What kinds of inquiries</h3>
+  <ul>
+    <!-- [sheet:ga4_monthly_summary.key_events_breakdown_json, expanded] -->
+    <li>Contact form submissions — <strong>11</strong></li>
+    <li>Phone number taps (mobile) — <strong>5</strong></li>
+    <li>Class booking starts — <strong>2</strong></li>
+  </ul>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 8 — KEYWORDS WE'RE TRACKING
+     Question answered: "Are we climbing for the searches that matter?"
+     Source: SEO Space (keyword rank tracking) + GSC
+     ============================================================ -->
+<section>
+  <h2>The keywords we're tracking for you</h2>
+  <p>
+    Plain-English takeaway:
+    <em>We're tracking 12 phrases that matter to your business. 4 of them are
+    now on page 1 of Google — up from 2 last month. The other 8 are climbing.</em>
+  </p>
+
+  <p>
+    <strong>4 of 12</strong> tracked keywords are now on page 1
+    <!-- count of seospace_keywords where is_on_page_1 = TRUE -->
+    &nbsp;(▲ +2 vs last month)
+  </p>
+
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr>
+        <th>Keyword</th>
+        <th>Current position</th>
+        <th>Last month</th>
+        <th>90 days ago</th>
+        <th>On page 1?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- [sheet:seospace_keywords ordered by current_position asc] -->
+      <tr><td>wedding cakes hudson valley</td><td>5</td><td>7</td><td>14</td><td>Yes</td></tr>
+      <tr><td>acme bakery kingston</td><td>1</td><td>1</td><td>2</td><td>Yes</td></tr>
+      <tr><td>sourdough class kingston ny</td><td>6</td><td>9</td><td>18</td><td>Yes</td></tr>
+      <tr><td>custom cakes hudson valley</td><td>9</td><td>11</td><td>22</td><td>Yes</td></tr>
+      <tr><td>best gluten free bakery</td><td>11</td><td>13</td><td>—</td><td>No (close)</td></tr>
+      <tr><td>cake delivery kingston ny</td><td>14</td><td>17</td><td>—</td><td>No</td></tr>
+      <tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+    </tbody>
+  </table>
+  <p><small>[Sparkline per row showing 12-week position trend — placeholder]</small></p>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 9 — SEO SITE HEALTH
+     Question answered: "Is the site itself in good shape?"
+     Source: SEO Space audit
+     ============================================================ -->
+<section>
+  <h2>Is your site itself in good shape?</h2>
+  <p>
+    Plain-English takeaway:
+    <em>Your overall SEO health score is 78/100 and trending up. Two critical
+    issues left from last month — both on the list to fix this cycle.</em>
+  </p>
+
+  <ul>
+    <li>
+      <strong>2 critical issues</strong> — problems actively hurting your rankings
+      <!-- [sheet:seospace_audit_summary.critical_issues_count] -->
+      &nbsp;(was 4 last month — ▼ 2 resolved)
+    </li>
+    <li>
+      <strong>7 warnings</strong> — smaller issues worth fixing
+      <!-- [sheet:seospace_audit_summary.warning_issues_count] -->
+      &nbsp;(was 9 — ▼ 2 resolved)
+    </li>
+    <li>
+      <strong>34 passed checks</strong> — things your site is already getting right
+      <!-- [sheet:seospace_audit_summary.passed_checks_count] -->
+    </li>
+  </ul>
+
+  <h3>Pages that need the most attention</h3>
+  <table border="1" cellpadding="4">
+    <thead>
+      <tr><th>Page</th><th>Score</th><th>Critical</th><th>Warnings</th></tr>
+    </thead>
+    <tbody>
+      <!-- [sheet:seospace_page_scores ordered by priority_rank asc, top 5] -->
+      <tr><td>/contact</td><td>52</td><td>1</td><td>3</td></tr>
+      <tr><td>/about</td><td>64</td><td>0</td><td>2</td></tr>
+      <tr><td>/classes/sourdough</td><td>71</td><td>1</td><td>1</td></tr>
+      <tr><td>/wedding-cakes</td><td>82</td><td>0</td><td>1</td></tr>
+      <tr><td>/ (homepage)</td><td>89</td><td>0</td><td>0</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 10 — WHAT I WORKED ON THIS MONTH (RECEIPTS OF WORK)
+     Question answered: "What did you actually do?"
+     This is the single best client-retention section in the dashboard.
+     ============================================================ -->
+<section>
+  <h2>What I worked on this month</h2>
+  <p>
+    Plain-English takeaway:
+    <em>This month I shipped 4 SEO fixes, updated 2 pages, and resolved
+    2 of last month's critical issues. Full list below.</em>
+  </p>
+
+  <h3>SEO issues resolved</h3>
+  <ul>
+    <!-- [sheet:seospace_issues where status='resolved' AND resolved_in_month=report_month] -->
+    <li>Fixed missing meta description on <code>/contact</code></li>
+    <li>Compressed oversized image on <code>/about</code> (saved ~1.2 MB)</li>
+  </ul>
+
+  <h3>Pages updated or created</h3>
+  <ul>
+    <!-- [sheet:tasks where category='content' AND status='done' AND completed_in_month=report_month] -->
+    <li>Added FAQ section to <code>/wedding-cakes</code></li>
+    <li>Rewrote page title on <code>/classes/sourdough</code></li>
+  </ul>
+
+  <h3>Site care</h3>
+  <ul>
+    <!-- [sheet:tasks where category='site_care' AND completed_in_month=report_month] -->
+    <li>Squarespace platform updates applied</li>
+    <li>Backup verified (April 28)</li>
+    <li>SSL certificate confirmed valid through October 2026</li>
+  </ul>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 11 — WHAT WE SHOULD DO NEXT
+     Question answered: "So what now?"
+     Two blocks: Quick wins (this month) and Bigger plays (1–3 months).
+     Each card: What / Why / Who (Me/You/Both) / Effort (S/M/L)
+     ============================================================ -->
+<section>
+  <h2>What we should do next</h2>
+
+  <h3>Quick wins — this month</h3>
+  <p><small>Small lifts with outsized payoff. I'll knock these out unless they say "You" — those need something only you can give me.</small></p>
+
+  <div class="cards">
+
+    <!-- CARD 1 -->
+    <article>
+      <h4>Rewrite the page title on <code>/contact</code></h4>
+      <p><strong>Why:</strong> It's showing in Google at position 11 but only getting a 1.8% click rate. A better title should bump both.</p>
+      <div class="card-meta">
+        <span><strong>Who:</strong> Me</span>
+        <span><strong>Effort:</strong> S</span>
+        <span><strong>Watching:</strong> CTR + position for <code>/contact</code></span>
+      </div>
+    </article>
+
+    <!-- CARD 2 -->
+    <article>
+      <h4>Add alt text to 8 images on the homepage</h4>
+      <p><strong>Why:</strong> Flagged in the SEO audit; also helps screen readers. Small accessibility + SEO win.</p>
+      <div class="card-meta">
+        <span><strong>Who:</strong> Me</span>
+        <span><strong>Effort:</strong> S</span>
+        <span><strong>Watching:</strong> Homepage SEO score</span>
+      </div>
+    </article>
+
+    <!-- CARD 3 -->
+    <article>
+      <h4>Send me 3–5 new product photos for the wedding cakes page</h4>
+      <p><strong>Why:</strong> That page is your top-performing landing page and the photos there are from 2023. Fresh images should lift conversions.</p>
+      <div class="card-meta">
+        <span><strong>Who:</strong> You</span>
+        <span><strong>Effort:</strong> S</span>
+        <span><strong>Watching:</strong> /wedding-cakes engagement + inquiries</span>
+      </div>
+    </article>
+
+  </div>
+
+  <h3>Bigger plays — next 1 to 3 months</h3>
+  <p><small>Larger work that compounds. I'll scope these out and we'll decide together.</small></p>
+
+  <div class="cards">
+
+    <!-- CARD 4 -->
+    <article>
+      <h4>Write a blog post answering "best gluten free bakery hudson valley"</h4>
+      <p><strong>Why:</strong> You're already ranking on page 2 for this without trying. A focused post should push you onto page 1 within a quarter.</p>
+      <div class="card-meta">
+        <span><strong>Who:</strong> Both</span>
+        <span><strong>Effort:</strong> M</span>
+        <span><strong>Watching:</strong> Position for that keyword + traffic to the new page</span>
+      </div>
+    </article>
+
+    <!-- CARD 5 -->
+    <article>
+      <h4>Set up booking form analytics</h4>
+      <p><strong>Why:</strong> We can see class booking <em>starts</em> but not completions. Adding this means we'll know which classes actually sell.</p>
+      <div class="card-meta">
+        <span><strong>Who:</strong> Me</span>
+        <span><strong>Effort:</strong> M</span>
+        <span><strong>Watching:</strong> Booking completion key event</span>
+      </div>
+    </article>
+
+  </div>
+
+  <h3>On the watch list</h3>
+  <p><small>Things I'm keeping an eye on but not acting on this month.</small></p>
+  <ul>
+    <li><em>"cake delivery kingston ny"</em> — sitting at position 14. If it moves to position 10 next month, we'll write a dedicated page for it.</li>
+    <li>April's drop in social traffic — likely just seasonal. Revisit if it persists.</li>
+  </ul>
+</section>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 12 — TRENDS OVER TIME (12-month rollups)
+     Question answered: "How does this fit the bigger picture?"
+     Collapsed by default — the curious reader can open it.
+     ============================================================ -->
+<details>
+  <summary><h2 style="display:inline">Trends over the last 12 months</h2></summary>
+
+  <p><small>The same numbers above, plotted across the whole year so you can see the shape of the trend.</small></p>
+
+  <div class="trend-grid">
+    <div>
+      <h3>Visitors per month</h3>
+      <div class="chart-placeholder">[12-month bar chart]</div>
+    </div>
+    <div>
+      <h3>Inquiries per month</h3>
+      <div class="chart-placeholder">[12-month bar chart]</div>
+    </div>
+    <div>
+      <h3>Google clicks per month</h3>
+      <div class="chart-placeholder">[12-month bar chart]</div>
+    </div>
+    <div>
+      <h3>Average Google position</h3>
+      <div class="chart-placeholder">[12-month line chart — lower is better]</div>
+    </div>
+    <div>
+      <h3>SEO Health Score</h3>
+      <div class="chart-placeholder">[12-month line chart]</div>
+    </div>
+  </div>
+</details>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 13 — PREVIOUS MONTHLY REPORTS
+     Question answered: "Where do I find older reports?"
+     ============================================================ -->
+<details>
+  <summary><h2 style="display:inline">Previous monthly reports</h2></summary>
+  <ul>
+    <!-- archive links — each prior month is its own URL on the Squarespace site -->
+    <li><a href="#">March 2026</a></li>
+    <li><a href="#">February 2026</a></li>
+    <li><a href="#">January 2026</a></li>
+    <li><a href="#">December 2025</a></li>
+    <li><a href="#">November 2025</a></li>
+    <li><a href="#">October 2025</a></li>
+    <li>… see archive for older reports</li>
+  </ul>
+</details>
+
+<hr>
+
+
+<!-- ============================================================
+     SECTION 14 — GLOSSARY
+     Question answered: "What does this word mean?"
+     Driven by the `glossary` tab — single source of truth so we
+     never re-write the same definitions twice.
+     ============================================================ -->
+<details>
+  <summary><h2 style="display:inline">What these words mean</h2></summary>
+  <p><small>A plain-English reference for every term that appears above. Same definitions used in the hover tooltips.</small></p>
+
+  <dl>
+    <!-- [sheet:glossary ordered by display_order] -->
+
+    <dt>Visitor / User</dt>
+    <dd>A different person who came to your site. One person who visits three times still counts as one visitor for the month.</dd>
+
+    <dt>Session / Visit</dt>
+    <dd>A single visit to your site. One person can have several sessions in a month — think of it like store visits, not unique customers.</dd>
+
+    <dt>Engagement rate</dt>
+    <dd>The percentage of visits where someone actually stuck around — at least 10 seconds, more than one page, or did something on the site. Higher is better. (This replaced the older "bounce rate," which worked the opposite way.)</dd>
+
+    <dt>Average engagement time</dt>
+    <dd>How long the typical visitor was actively focused on your site (not just idle in a background tab).</dd>
+
+    <dt>Key event / Inquiry / Conversion</dt>
+    <dd>A specific action you care about — a form submission, a phone tap, a booking, a newsletter signup. The whole point of the site, in metric form.</dd>
+
+    <dt>Conversion rate</dt>
+    <dd>Of all the people who visited, the percentage who completed a key event. Like a "closing rate" for your website.</dd>
+
+    <dt>Landing page</dt>
+    <dd>The first page someone lands on when they arrive at your site. Often <em>not</em> the homepage.</dd>
+
+    <dt>Organic search</dt>
+    <dd>Visitors who found you by searching on Google (or Bing) and clicked a regular, non-ad result. This is what SEO grows.</dd>
+
+    <dt>Direct traffic</dt>
+    <dd>Visitors who typed your URL or used a bookmark — or, often, clicked a link from somewhere we can't track (a text message, a PDF, certain apps).</dd>
+
+    <dt>Referral traffic</dt>
+    <dd>Visitors who clicked a link to you from another website (not a search engine, not social media).</dd>
+
+    <dt>Channel</dt>
+    <dd>A category of where visitors came from (Organic, Direct, Referral, Social, Email, Paid).</dd>
+
+    <dt>Impression</dt>
+    <dd>One time your site appeared in a Google search result. Even if no one clicked, it counts as exposure. <em>Analogy: your shop sign got seen.</em></dd>
+
+    <dt>Click</dt>
+    <dd>Someone saw you in Google and clicked through to your site. <em>Analogy: someone walked in.</em></dd>
+
+    <dt>Click-through rate (CTR)</dt>
+    <dd>Of the people who saw you in Google, the percentage who actually clicked. (Clicks ÷ impressions.) Like a batting average for your search listing.</dd>
+
+    <dt>Average position</dt>
+    <dd>Roughly where your site shows up on the Google results page. <strong>Lower is better</strong> — position 1 is the top result, position 11 means you're on page 2.</dd>
+
+    <dt>Query / Search term</dt>
+    <dd>The actual words someone typed into Google when your site showed up.</dd>
+
+    <dt>Branded query</dt>
+    <dd>A search that includes your business name. These are people who already know you.</dd>
+
+    <dt>Non-branded query</dt>
+    <dd>A search that doesn't mention your business name. These are strangers — the audience SEO is trying to reach.</dd>
+
+    <dt>Indexed page</dt>
+    <dd>A page on your site that Google has on file and is willing to show in search results. If a page isn't indexed, it cannot appear in Google.</dd>
+
+    <dt>AI Overview</dt>
+    <dd>Google's AI-generated answer that sometimes appears at the top of search results. It can reduce clicks even when you rank well, because the user gets their answer without visiting your site.</dd>
+
+    <dt>SEO audit score</dt>
+    <dd>A 0–100 grade for how well your site follows search engine best practices. The trend matters more than the absolute number.</dd>
+
+    <dt>Critical issue</dt>
+    <dd>A problem flagged by SEO Space that is actively hurting your rankings and should be fixed first.</dd>
+
+    <dt>Warning</dt>
+    <dd>A smaller SEO issue worth fixing but not urgent.</dd>
+
+    <dt>Tracked keyword</dt>
+    <dd>A specific search phrase we're monitoring to see your ranking on Google week by week.</dd>
+
+    <dt>Page 1 ranking</dt>
+    <dd>Your site appears in the top 10 results on Google for that phrase. Most clicks happen on page 1.</dd>
+
+    <dt>Backlink</dt>
+    <dd>Another website's link pointing to yours. Google treats good backlinks like recommendations — quality beats quantity. <em>Analogy: like reviews from other businesses.</em></dd>
+
+    <dt>Meta title / Meta description</dt>
+    <dd>The clickable headline and short blurb that show up in Google search results. The "shop window" for your page.</dd>
+
+    <dt>Alt text</dt>
+    <dd>A short text description attached to an image. Helps Google understand the image and helps screen readers for visually impaired visitors.</dd>
+  </dl>
+</details>
+
+<hr>
+
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer>
+  <p><small>
+    Data sources: Google Analytics 4, Google Search Console, SEO Space.
+    Report generated from Bergen Design Co. monthly client dashboard.
+  </small></p>
+  <p><small>Questions about anything in this report? Reply to the email this came in and I'll explain it in plain English.</small></p>
+</footer>
+
+</body>
+</html>

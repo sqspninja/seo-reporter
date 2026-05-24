@@ -1,4 +1,5 @@
 (function () {
+  const WIDGET_VERSION = '2026-05-24.2';
   const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
 
   const DEFAULT_DASHBOARD_DATA = {
@@ -162,6 +163,7 @@
       .client-dashboard *{box-sizing:border-box}
       .client-dashboard .cd-header,.client-dashboard .cd-snapshot,.client-dashboard .cd-section,.client-dashboard .cd-split,.client-dashboard .cd-grid,.client-dashboard .cd-history{display:grid;gap:var(--cd-gap)}
       .client-dashboard .cd-header{border-bottom:var(--cd-line);margin-bottom:1rem;padding-bottom:1rem}
+      .client-dashboard .cd-version{font-size:.8rem;margin:0;color:var(--cd-muted)}
       .client-dashboard .cd-lede{max-width:72ch;margin:0 0 1.25rem}
       .client-dashboard .cd-snapshot{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:1rem}
       .client-dashboard .cd-card,.client-dashboard .cd-section{border:var(--cd-line);padding:1rem}
@@ -277,6 +279,7 @@
     root.classList.add('client-dashboard');
     root.innerHTML = `
       <header class="cd-header">
+        <p class="cd-version">Dashboard widget ${escapeHtml(WIDGET_VERSION)} · ${data.reportMonth ? `data ${escapeHtml(data.reportMonth)}` : 'data source active'}</p>
         <p class="cd-muted">Monthly Analytics Dashboard</p>
         <h1>${escapeHtml(data.clientName)}</h1>
         <p>${escapeHtml(data.reportLabel)}, compared with ${escapeHtml(data.comparisonLabel)}</p>

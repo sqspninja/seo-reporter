@@ -28,6 +28,12 @@
   padding-bottom: 1rem;
 }
 
+.client-dashboard .cd-version {
+  color: var(--cd-muted);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
 .client-dashboard .cd-lede {
   max-width: 72ch;
   margin: 0 0 1.25rem;

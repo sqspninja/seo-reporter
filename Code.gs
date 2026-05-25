@@ -349,10 +349,10 @@ function getClientDashboardData_(clientId) {
   const gscPrevious = getLastRowForMonth_(gscSummaryRows, previousMonth);
 
   const gscQueries = getRows_(ss.getSheetByName('gsc_queries'))
-    .filter((row) => row.client_id === clientId && row.report_month === currentMonth);
+    .filter((row) => row.client_id === clientId && normalizeReportMonth_(row.report_month) === currentMonth);
 
   const gscPages = getRows_(ss.getSheetByName('gsc_pages'))
-    .filter((row) => row.client_id === clientId && row.report_month === currentMonth);
+    .filter((row) => row.client_id === clientId && normalizeReportMonth_(row.report_month) === currentMonth);
 
   const topKeywordsByClicks = gscQueries
     .slice()
@@ -468,24 +468,25 @@ function getClientDashboardData_(clientId) {
 }
 
 function getLatestReportMonth_(rows) {
-  return [...new Set(rows.map((row) => row.report_month).filter(Boolean))].sort().pop() || '';
+  return [...new Set(rows.map((row) => normalizeReportMonth_(row.report_month)).filter(Boolean))].sort().pop() || '';
 }
 
 function getPreviousReportMonth_(rows, currentMonth) {
-  const months = [...new Set(rows.map((row) => row.report_month).filter(Boolean))].sort();
+  const months = [...new Set(rows.map((row) => normalizeReportMonth_(row.report_month)).filter(Boolean))].sort();
   const currentIndex = months.indexOf(currentMonth);
   return currentIndex > 0 ? months[currentIndex - 1] : '';
 }
 
 function getLastRowForMonth_(rows, reportMonth) {
-  const matches = rows.filter((row) => row.report_month === reportMonth);
+  const matches = rows.filter((row) => normalizeReportMonth_(row.report_month) === reportMonth);
   return matches.length ? matches[matches.length - 1] : {};
 }
 
 function getUniqueMonthRows_(rows) {
   const byMonth = {};
   rows.forEach((row) => {
-    if (row.report_month) byMonth[row.report_month] = row;
+    const reportMonth = normalizeReportMonth_(row.report_month);
+    if (reportMonth) byMonth[reportMonth] = row;
   });
   return Object.keys(byMonth).sort().map((month) => byMonth[month]);
 }
@@ -554,17 +555,38 @@ function getChangeTone_(current, previous) {
 }
 
 function formatReportLabel_(reportMonth) {
-  if (!reportMonth) return '';
-  const parts = reportMonth.split('-');
+  const normalizedMonth = normalizeReportMonth_(reportMonth);
+  if (!normalizedMonth) return '';
+  const parts = normalizedMonth.split('-');
   const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
   return Utilities.formatDate(date, Session.getScriptTimeZone(), 'MMMM yyyy');
 }
 
 function formatShortMonth_(reportMonth) {
-  if (!reportMonth) return '';
-  const parts = reportMonth.split('-');
+  const normalizedMonth = normalizeReportMonth_(reportMonth);
+  if (!normalizedMonth) return '';
+  const parts = normalizedMonth.split('-');
   const date = new Date(Number(parts[0]), Number(parts[1]) - 1, 1);
   return Utilities.formatDate(date, Session.getScriptTimeZone(), 'MMM');
+}
+
+function normalizeReportMonth_(reportMonth) {
+  if (!reportMonth) return '';
+
+  if (reportMonth instanceof Date) {
+    return Utilities.formatDate(reportMonth, Session.getScriptTimeZone(), 'yyyy-MM');
+  }
+
+  const text = String(reportMonth).trim();
+  const monthMatch = text.match(/^(\d{4})-(\d{1,2})/);
+  if (monthMatch) return `${monthMatch[1]}-${monthMatch[2].padStart(2, '0')}`;
+
+  const parsedDate = new Date(text);
+  if (!isNaN(parsedDate.getTime())) {
+    return Utilities.formatDate(parsedDate, Session.getScriptTimeZone(), 'yyyy-MM');
+  }
+
+  return text;
 }
 
 function toDisplayPath_(url, domain) {

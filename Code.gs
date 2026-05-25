@@ -354,34 +354,46 @@ function getClientDashboardData_(clientId) {
   const gscPages = getRows_(ss.getSheetByName('gsc_pages'))
     .filter((row) => row.client_id === clientId && normalizeReportMonth_(row.report_month) === currentMonth);
 
-  const topKeywordsByClicks = gscQueries
+  const trafficSourceRows = getRows_(ss.getSheetByName('ga4_traffic_sources'))
+    .filter((row) => row.client_id === clientId && normalizeReportMonth_(row.report_month) === currentMonth);
+
+  const uniqueGscQueries = uniqueRowsByKey_(gscQueries, 'query');
+  const uniqueGscPages = uniqueRowsByKey_(gscPages, 'page');
+  const uniqueTrafficSources = uniqueRowsByKey_(trafficSourceRows, 'session_source_medium');
+
+  const topKeywordsByClicks = uniqueGscQueries
     .slice()
     .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0))
     .slice(0, 5);
 
-  const topKeywordsByVisibility = gscQueries
+  const topKeywordsByVisibility = uniqueGscQueries
     .slice()
     .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))
     .slice(0, 5);
 
-  const pagesByClicks = gscPages
+  const pagesByClicks = uniqueGscPages
     .slice()
     .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0))
     .slice(0, 5);
 
-  const pagesByImpressions = gscPages
+  const pagesByImpressions = uniqueGscPages
     .slice()
     .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))
     .slice(0, 5);
 
-  const highImpressionPages = gscPages
+  const highImpressionPages = uniqueGscPages
     .slice()
     .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))
     .slice(0, 5);
 
-  const goodPositionNoClicks = gscPages
+  const goodPositionNoClicks = uniqueGscPages
     .filter((row) => Number(row.position || 0) > 0 && Number(row.position || 0) <= 20 && Number(row.clicks || 0) === 0)
     .sort((a, b) => Number(a.position || 0) - Number(b.position || 0))
+    .slice(0, 5);
+
+  const topTrafficSources = uniqueTrafficSources
+    .slice()
+    .sort((a, b) => Number(b.sessions || 0) - Number(a.sessions || 0))
     .slice(0, 5);
 
   return {
@@ -424,6 +436,7 @@ function getClientDashboardData_(clientId) {
     topKeywordsByVisibility: topKeywordsByVisibility.map(formatKeywordRow_),
     pagesByClicks: pagesByClicks.map((row) => formatPageRow_(row, client.domain)),
     pagesByImpressions: pagesByImpressions.map((row) => formatPageRow_(row, client.domain)),
+    trafficSources: topTrafficSources.map(formatTrafficSourceRow_),
     pageOpportunities: {
       highImpressions: highImpressionPages.map((row) => formatPageRow_(row, client.domain)),
       goodPositionNoClicks: goodPositionNoClicks.map((row) => formatPageRow_(row, client.domain))
@@ -540,6 +553,24 @@ function formatPageRow_(row, domain) {
     impressions: Number(row.impressions || 0),
     position: formatDecimal_(row.position, 2)
   };
+}
+
+function formatTrafficSourceRow_(row) {
+  return {
+    source: formatSourceMedium_(row.session_source_medium),
+    users: Number(row.active_users || 0),
+    sessions: Number(row.sessions || 0),
+    engagement: formatPercent_(row.engagement_rate)
+  };
+}
+
+function uniqueRowsByKey_(rows, key) {
+  const byKey = {};
+  rows.forEach((row) => {
+    const value = String(row[key] || '').trim();
+    if (value) byKey[value] = row;
+  });
+  return Object.keys(byKey).map((value) => byKey[value]);
 }
 
 function formatPositionChangeText_(current, previous) {
@@ -817,7 +848,7 @@ function replaceRowsForClientMonth_(sheetName, clientId, reportMonth, rows) {
   }
 
   const kept = [values[0]].concat(values.slice(1).filter((row) => {
-    return !(row[0] === clientId && row[1] === reportMonth);
+    return !(row[0] === clientId && normalizeReportMonth_(row[1]) === normalizeReportMonth_(reportMonth));
   }));
 
   sheet.clearContents();

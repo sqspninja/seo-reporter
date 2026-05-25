@@ -1,5 +1,5 @@
 (function () {
-  const WIDGET_VERSION = '2026-05-25.3';
+  const WIDGET_VERSION = '2026-05-25.4';
   const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
 
   const state = {};
@@ -65,7 +65,7 @@
     const link = document.createElement('link');
     link.id = 'client-dashboard-widget-styles';
     link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/gh/sqspninja/seo-reporter@main/client-dashboard-widget.css?v=2026-05-25-3';
+    link.href = 'https://cdn.jsdelivr.net/gh/sqspninja/seo-reporter@main/client-dashboard-widget.css?v=2026-05-25-4';
     document.head.appendChild(link);
   }
 

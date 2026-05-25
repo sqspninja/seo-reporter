@@ -2,7 +2,12 @@
   width: min(1120px, 100%);
   margin: 0 auto;
   --cd-gap: 1rem;
-  --cd-line: 1px solid currentColor;
+  --cd-radius: 8px;
+  --cd-line-color: color-mix(in srgb, currentColor 18%, transparent);
+  --cd-soft-bg: color-mix(in srgb, currentColor 3%, transparent);
+  --cd-line: 1px solid var(--cd-line-color);
+  font-size: 16px;
+  line-height: 1.45;
 }
 
 .client-dashboard * {
@@ -28,6 +33,16 @@
   border-bottom: var(--cd-line);
 }
 
+.client-dashboard .cd-header h1 {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.client-dashboard .cd-header p {
+  margin: 0;
+}
+
 .client-dashboard .cd-version {
   font-size: 0.85em;
   opacity: 0.7;
@@ -44,30 +59,56 @@
 .client-dashboard .cd-sidebar-section,
 .client-dashboard .cd-table-card {
   border: var(--cd-line);
+  border-radius: var(--cd-radius);
   padding: var(--cd-gap);
+  background: var(--cd-soft-bg);
 }
 
 .client-dashboard .cd-kpi-card h2,
 .client-dashboard .cd-section h2,
 .client-dashboard .cd-sidebar-section h2,
 .client-dashboard .cd-table-card h3 {
+  font-size: 1.05rem;
+  line-height: 1.25;
+  margin-bottom: 0.25rem;
   margin-top: 0;
 }
 
 .client-dashboard .cd-kpi-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 0.5rem;
-  align-items: baseline;
-  padding-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+  padding-top: 0.85rem;
+}
+
+.client-dashboard .cd-kpi-row span:first-child {
+  flex-basis: 100%;
+  font-size: 0.9rem;
+  opacity: 0.72;
+}
+
+.client-dashboard .cd-kpi-row strong {
+  font-size: clamp(2rem, 4.4vw, 3.35rem);
+  line-height: 0.95;
+  letter-spacing: 0;
 }
 
 .client-dashboard .cd-kpi-row--secondary {
   opacity: 0.82;
+  padding-top: 0.95rem;
+}
+
+.client-dashboard .cd-kpi-row--secondary strong {
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1;
 }
 
 .client-dashboard .cd-change {
-  font-size: 0.85em;
+  border-radius: 999px;
+  border: var(--cd-line);
+  font-size: 0.82rem;
+  padding: 0.1rem 0.42rem;
   white-space: nowrap;
 }
 
@@ -110,10 +151,12 @@
 .client-dashboard .cd-tabs button {
   appearance: none;
   border: var(--cd-line);
+  border-radius: 999px;
   background: transparent;
   color: inherit;
   cursor: pointer;
   font: inherit;
+  font-size: 0.9rem;
   padding: 0.35rem 0.6rem;
 }
 
@@ -137,9 +180,15 @@
 .client-dashboard th,
 .client-dashboard td {
   border-top: var(--cd-line);
-  padding: 0.65rem 0.5rem;
+  font-size: 0.95rem;
+  padding: 0.7rem 0.5rem;
   text-align: left;
   vertical-align: top;
+}
+
+.client-dashboard th {
+  font-size: 0.82rem;
+  opacity: 0.7;
 }
 
 .client-dashboard th:not(:first-child),

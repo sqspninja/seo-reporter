@@ -349,91 +349,121 @@ function getClientDashboardData_(clientId) {
   const gscPrevious = getLastRowForMonth_(gscSummaryRows, previousMonth);
 
   const gscQueries = getRows_(ss.getSheetByName('gsc_queries'))
-    .filter((row) => row.client_id === clientId && row.report_month === currentMonth)
-    .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0))
-    .slice(0, 10);
+    .filter((row) => row.client_id === clientId && row.report_month === currentMonth);
 
   const gscPages = getRows_(ss.getSheetByName('gsc_pages'))
-    .filter((row) => row.client_id === clientId && row.report_month === currentMonth)
-    .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0))
-    .slice(0, 10);
-
-  const trafficSources = getRows_(ss.getSheetByName('ga4_traffic_sources'))
-    .filter((row) => row.client_id === clientId && row.report_month === currentMonth)
-    .sort((a, b) => Number(b.sessions || 0) - Number(a.sessions || 0))
-    .slice(0, 6);
-
-  const landingPages = getRows_(ss.getSheetByName('ga4_landing_pages'))
     .filter((row) => row.client_id === clientId && row.report_month === currentMonth);
+
+  const topKeywordsByClicks = gscQueries
+    .slice()
+    .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0))
+    .slice(0, 5);
+
+  const topKeywordsByVisibility = gscQueries
+    .slice()
+    .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))
+    .slice(0, 5);
+
+  const pagesByClicks = gscPages
+    .slice()
+    .sort((a, b) => Number(b.clicks || 0) - Number(a.clicks || 0))
+    .slice(0, 5);
+
+  const pagesByImpressions = gscPages
+    .slice()
+    .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))
+    .slice(0, 5);
+
+  const highImpressionPages = gscPages
+    .slice()
+    .sort((a, b) => Number(b.impressions || 0) - Number(a.impressions || 0))
+    .slice(0, 5);
+
+  const goodPositionNoClicks = gscPages
+    .filter((row) => Number(row.position || 0) > 0 && Number(row.position || 0) <= 20 && Number(row.clicks || 0) === 0)
+    .sort((a, b) => Number(a.position || 0) - Number(b.position || 0))
+    .slice(0, 5);
 
   return {
     clientName: client.client_name || client.client_id,
+    websiteName: client.domain || client.client_name || client.client_id,
     reportMonth: currentMonth,
+    reportRange: `${formatReportLabel_(currentMonth)}${previousMonth ? ` compared with ${formatReportLabel_(previousMonth)}` : ''}`,
     reportLabel: formatReportLabel_(currentMonth),
     comparisonLabel: formatReportLabel_(previousMonth),
-    lede: `${formatReportLabel_(currentMonth)} search and traffic data for ${client.client_name || client.client_id}.`,
-    snapshot: [
-      {
-        title: 'Search Performance',
-        help: 'How many times your site appeared in Google search results, whether or not someone clicked.',
-        primary: formatWholeNumber_(gscCurrent.impressions),
-        caption: 'Times the site appeared in Google search results.',
-        secondary: `${formatWholeNumber_(gscCurrent.clicks)} clicks from Google`,
-        change: formatPercentChangeText_(gscCurrent.impressions, gscPrevious.impressions, 'visibility'),
-        tone: getChangeTone_(gscCurrent.impressions, gscPrevious.impressions)
+    kpis: {
+      websiteVisitors: {
+        title: 'Website Visitors',
+        primaryLabel: 'Engaged Visitors',
+        primaryValue: formatWholeNumber_(ga4Current.active_users),
+        primaryChange: makeChange_(ga4Current.active_users, ga4Previous.active_users),
+        secondaryLabel: 'Total Visitors',
+        secondaryValue: formatWholeNumber_(ga4Current.total_users),
+        secondaryChange: makeChange_(ga4Current.total_users, ga4Previous.total_users)
       },
-      {
-        title: 'New Visitors',
-        primary: formatWholeNumber_(ga4Current.new_users || ga4Current.total_users),
-        caption: ga4Current.new_users ? 'First-time visitors measured by GA4.' : 'Visitors measured by GA4.',
-        change: formatPercentChangeText_(ga4Current.new_users || ga4Current.total_users, ga4Previous.new_users || ga4Previous.total_users, 'vs last month'),
-        tone: getChangeTone_(ga4Current.new_users || ga4Current.total_users, ga4Previous.new_users || ga4Previous.total_users)
+      searchVisibility: {
+        title: 'Google Search Visibility',
+        primaryLabel: 'Clicks from Google',
+        primaryValue: formatWholeNumber_(gscCurrent.clicks),
+        primaryChange: makeChange_(gscCurrent.clicks, gscPrevious.clicks),
+        secondaryLabel: 'Search Impressions',
+        secondaryValue: formatWholeNumber_(gscCurrent.impressions),
+        secondaryChange: makeChange_(gscCurrent.impressions, gscPrevious.impressions)
       },
-      {
-        title: 'Average Google Position',
-        help: 'The average spot where your site appeared in Google. Lower numbers are better: 1 is the top result.',
-        primary: formatDecimal_(gscCurrent.position, 2),
-        caption: 'Average ranking in Google. Lower is better.',
-        secondary: `Previous month: ${formatDecimal_(gscPrevious.position, 2)}`,
-        change: formatPositionChangeText_(gscCurrent.position, gscPrevious.position),
-        tone: Number(gscCurrent.position || 0) <= Number(gscPrevious.position || 0) ? 'good' : 'bad'
+      visitorEngagement: {
+        title: 'Visitor Engagement',
+        primaryLabel: 'Engagement Rate',
+        primaryValue: formatPercent_(ga4Current.engagement_rate),
+        primaryChange: makeChange_(ga4Current.engagement_rate, ga4Previous.engagement_rate),
+        secondaryLabel: 'Engaged Sessions',
+        secondaryValue: formatWholeNumber_(ga4Current.engaged_sessions),
+        secondaryChange: makeChange_(ga4Current.engaged_sessions, ga4Previous.engaged_sessions)
       }
-    ],
-    keywords: gscQueries.map((row) => ({
-      keyword: row.query,
-      clicks: Number(row.clicks || 0),
-      impressions: Number(row.impressions || 0),
-      ctr: formatPercent_(row.ctr),
-      position: formatDecimal_(row.position, 2)
-    })),
-    pages: gscPages.map((row) => ({
-      path: toDisplayPath_(row.page, client.domain),
-      clicks: Number(row.clicks || 0),
-      impressions: Number(row.impressions || 0),
-      ctr: formatPercent_(row.ctr),
-      position: formatDecimal_(row.position, 2)
-    })),
-    trafficSources: trafficSources.map((row) => ({
-      source: formatSourceMedium_(row.session_source_medium),
-      users: Number(row.active_users || 0),
-      newUsers: row.new_users ? Number(row.new_users) : '',
-      engagement: formatPercent_(row.engagement_rate)
-    })),
-    keyActions: [
-      { label: 'Key events', value: Number(ga4Current.key_events || 0) },
-      { label: 'Total events', value: Number(ga4Current.event_count || 0) }
-    ],
-    history: getUniqueMonthRows_(gscSummaryRows).slice(-6).map((row) => ({
-      month: formatShortMonth_(row.report_month),
-      impressions: formatWholeNumber_(row.impressions),
-      clicks: Number(row.clicks || 0)
-    })),
-    opportunities: buildPlaceholderOpportunities_(gscQueries, gscPages, landingPages),
-    nextSteps: [
-      { title: 'Recommendation placeholder', reason: 'Reason placeholder tied to one clear metric above.' },
-      { title: 'Recommendation placeholder', reason: 'Reason placeholder tied to one clear metric above.' },
-      { title: 'Recommendation placeholder', reason: 'Reason placeholder tied to one clear metric above.' }
-    ]
+    },
+    topKeywordsByClicks: topKeywordsByClicks.map(formatKeywordRow_),
+    topKeywordsByVisibility: topKeywordsByVisibility.map(formatKeywordRow_),
+    pagesByClicks: pagesByClicks.map((row) => formatPageRow_(row, client.domain)),
+    pagesByImpressions: pagesByImpressions.map((row) => formatPageRow_(row, client.domain)),
+    pageOpportunities: {
+      highImpressions: highImpressionPages.map((row) => formatPageRow_(row, client.domain)),
+      goodPositionNoClicks: goodPositionNoClicks.map((row) => formatPageRow_(row, client.domain))
+    },
+    seoOverview: {
+      status: 'SEO snapshot ready for review',
+      items: [
+        { label: 'Missing SEO descriptions', status: 'Needs review' },
+        { label: 'Images missing alt text', status: 'Needs review' },
+        { label: 'Oversized images', status: 'Needs review' },
+        { label: 'Thin content', status: 'Needs review' },
+        { label: 'Title issues', status: 'Needs review' }
+      ],
+      reportUrl: ''
+    },
+    sidebar: {
+      thingsYouCanDo: [
+        'Add or update page content',
+        'Send new photos',
+        'Review service descriptions',
+        'Approve suggested SEO updates'
+      ],
+      thingsICanHelpWith: [
+        'Rewrite SEO descriptions',
+        'Improve page structure',
+        'Fix technical SEO issues',
+        'Optimize important pages'
+      ],
+      completedThisMonth: [
+        'Reviewed search performance',
+        'Checked top page opportunities',
+        'Updated SEO report',
+        'Identified priority fixes'
+      ],
+      contact: {
+        text: 'Have a question about these numbers or want help with the next update?',
+        buttonLabel: 'Request Help',
+        href: '#'
+      }
+    }
   };
 }
 
@@ -479,6 +509,36 @@ function formatPercentChangeText_(current, previous, label) {
   const change = ((currentNumber - previousNumber) / previousNumber) * 100;
   const sign = change >= 0 ? '+' : '';
   return `${sign}${change.toFixed(1)}% ${label}`;
+}
+
+function makeChange_(current, previous) {
+  const currentNumber = Number(current || 0);
+  const previousNumber = Number(previous || 0);
+  if (!previousNumber) return { value: 'No comparison', tone: 'neutral' };
+  const change = ((currentNumber - previousNumber) / previousNumber) * 100;
+  const sign = change >= 0 ? '+' : '';
+  return {
+    value: `${sign}${change.toFixed(1)}%`,
+    tone: change >= 0 ? 'good' : 'bad'
+  };
+}
+
+function formatKeywordRow_(row) {
+  return {
+    keyword: row.query,
+    clicks: Number(row.clicks || 0),
+    impressions: Number(row.impressions || 0),
+    position: formatDecimal_(row.position, 2)
+  };
+}
+
+function formatPageRow_(row, domain) {
+  return {
+    page: toDisplayPath_(row.page, domain),
+    clicks: Number(row.clicks || 0),
+    impressions: Number(row.impressions || 0),
+    position: formatDecimal_(row.position, 2)
+  };
 }
 
 function formatPositionChangeText_(current, previous) {

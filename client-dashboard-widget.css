@@ -3,9 +3,6 @@
   margin: 0 auto;
   --cd-gap: 1rem;
   --cd-line: 1px solid currentColor;
-  --cd-muted: color-mix(in srgb, currentColor 62%, transparent);
-  --cd-good: #176b3a;
-  --cd-bad: #9d3b27;
 }
 
 .client-dashboard * {
@@ -13,105 +10,119 @@
 }
 
 .client-dashboard .cd-header,
-.client-dashboard .cd-snapshot,
+.client-dashboard .cd-kpis,
+.client-dashboard .cd-layout,
+.client-dashboard .cd-main,
+.client-dashboard .cd-sidebar,
+.client-dashboard .cd-table-grid,
 .client-dashboard .cd-section,
-.client-dashboard .cd-split,
-.client-dashboard .cd-grid,
-.client-dashboard .cd-history {
+.client-dashboard .cd-sidebar-section {
   display: grid;
   gap: var(--cd-gap);
 }
 
 .client-dashboard .cd-header {
+  margin-bottom: var(--cd-gap);
+  padding-bottom: var(--cd-gap);
   border-bottom: var(--cd-line);
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
 }
 
 .client-dashboard .cd-version {
-  color: var(--cd-muted);
-  font-size: 0.8rem;
+  font-size: 0.85em;
+  opacity: 0.7;
   margin: 0;
 }
 
-.client-dashboard .cd-lede {
-  max-width: 72ch;
-  margin: 0 0 1.25rem;
-}
-
-.client-dashboard .cd-snapshot {
+.client-dashboard .cd-kpis {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-bottom: 1rem;
+  margin-bottom: var(--cd-gap);
 }
 
-.client-dashboard .cd-card,
-.client-dashboard .cd-section {
+.client-dashboard .cd-kpi-card,
+.client-dashboard .cd-section,
+.client-dashboard .cd-sidebar-section {
   border: var(--cd-line);
-  padding: 1rem;
+  padding: var(--cd-gap);
 }
 
-.client-dashboard .cd-muted,
-.client-dashboard .cd-caption,
-.client-dashboard .cd-note {
-  color: var(--cd-muted);
+.client-dashboard .cd-kpi-card h2,
+.client-dashboard .cd-section h2,
+.client-dashboard .cd-sidebar-section h2 {
+  margin-top: 0;
 }
 
-.client-dashboard .cd-number {
-  display: block;
-  font-size: clamp(2.1rem, 5vw, 4rem);
-  line-height: 1;
-  margin-bottom: 0.5rem;
+.client-dashboard .cd-kpi-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.5rem;
+  align-items: baseline;
+  padding-top: 0.5rem;
+}
+
+.client-dashboard .cd-kpi-row--secondary {
+  opacity: 0.82;
 }
 
 .client-dashboard .cd-change {
-  display: inline-flex;
-  border: var(--cd-line);
-  padding: 0.25rem 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85em;
+  white-space: nowrap;
 }
 
-.client-dashboard .cd-change.good {
-  color: var(--cd-good);
+.client-dashboard .cd-change--good {
+  color: #176b3a;
 }
 
-.client-dashboard .cd-change.bad {
-  color: var(--cd-bad);
+.client-dashboard .cd-change--bad {
+  color: #9d3b27;
+}
+
+.client-dashboard .cd-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  align-items: start;
+}
+
+.client-dashboard .cd-table-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .client-dashboard .cd-section-header {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  align-items: baseline;
+  gap: var(--cd-gap);
+  align-items: start;
   border-bottom: var(--cd-line);
-  margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
 }
 
-.client-dashboard .cd-sort {
-  display: inline-flex;
-  border: var(--cd-line);
+.client-dashboard .cd-section-header p {
+  margin-bottom: 0;
 }
 
-.client-dashboard .cd-sort button {
+.client-dashboard .cd-tabs {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.client-dashboard .cd-tabs button {
   appearance: none;
-  border: 0;
-  border-right: var(--cd-line);
+  border: var(--cd-line);
   background: transparent;
   color: inherit;
   cursor: pointer;
-  padding: 0.45rem 0.65rem;
   font: inherit;
+  padding: 0.35rem 0.6rem;
 }
 
-.client-dashboard .cd-sort button:last-child {
-  border-right: 0;
-}
-
-.client-dashboard .cd-sort button[aria-pressed="true"] {
+.client-dashboard .cd-tabs button[aria-pressed="true"] {
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 0.18em;
+}
+
+.client-dashboard .cd-table-wrap {
+  max-height: 24rem;
+  overflow: auto;
 }
 
 .client-dashboard table {
@@ -122,14 +133,9 @@
 .client-dashboard th,
 .client-dashboard td {
   border-top: var(--cd-line);
-  padding: 0.7rem 0.5rem;
+  padding: 0.65rem 0.5rem;
   text-align: left;
   vertical-align: top;
-}
-
-.client-dashboard th:first-child,
-.client-dashboard td:first-child {
-  width: 44%;
 }
 
 .client-dashboard th:not(:first-child),
@@ -138,65 +144,39 @@
   white-space: nowrap;
 }
 
-.client-dashboard .cd-row-title {
-  display: block;
-  font-weight: 700;
+.client-dashboard .cd-page-cell {
   overflow-wrap: anywhere;
-}
-
-.client-dashboard .cd-split {
-  grid-template-columns: minmax(0, 0.58fr) minmax(0, 0.42fr);
-  align-items: start;
-}
-
-.client-dashboard .cd-stat-list {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.client-dashboard .cd-stat-row {
-  display: grid;
-  grid-template-columns: minmax(8rem, 1fr) auto;
-  gap: 1rem;
-  border-top: var(--cd-line);
-  padding-top: 0.75rem;
-}
-
-.client-dashboard .cd-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .client-dashboard .cd-list {
   margin: 0;
-  padding-left: 1.1rem;
+  padding-left: 1.2rem;
 }
 
 .client-dashboard .cd-list li + li {
-  margin-top: 0.45rem;
+  margin-top: 0.4rem;
 }
 
-.client-dashboard .cd-history {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+.client-dashboard .cd-list small {
+  display: block;
+  opacity: 0.7;
 }
 
-.client-dashboard .cd-history-month {
-  border-top: var(--cd-line);
-  padding-top: 0.75rem;
-}
-
-@media (max-width: 820px) {
-  .client-dashboard .cd-snapshot,
-  .client-dashboard .cd-split,
-  .client-dashboard .cd-grid,
-  .client-dashboard .cd-history {
+@media (max-width: 900px) {
+  .client-dashboard .cd-kpis,
+  .client-dashboard .cd-layout,
+  .client-dashboard .cd-table-grid {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 640px) {
   .client-dashboard .cd-section-header {
     display: grid;
+  }
+
+  .client-dashboard .cd-kpi-row {
+    grid-template-columns: 1fr;
   }
 
   .client-dashboard table,
@@ -218,18 +198,16 @@
 
   .client-dashboard tr {
     border-top: var(--cd-line);
-    padding: 0.7rem 0;
+    padding: 0.65rem 0;
   }
 
   .client-dashboard td,
   .client-dashboard th,
-  .client-dashboard th:first-child,
-  .client-dashboard td:first-child,
   .client-dashboard th:not(:first-child),
   .client-dashboard td:not(:first-child) {
     width: 100%;
     border-top: 0;
-    padding: 0.25rem 0;
+    padding: 0.2rem 0;
     text-align: left;
     white-space: normal;
   }

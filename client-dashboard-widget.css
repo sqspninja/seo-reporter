@@ -15,6 +15,7 @@
 .client-dashboard .cd-main,
 .client-dashboard .cd-sidebar,
 .client-dashboard .cd-table-grid,
+.client-dashboard .cd-table-card,
 .client-dashboard .cd-section,
 .client-dashboard .cd-sidebar-section {
   display: grid;
@@ -40,14 +41,16 @@
 
 .client-dashboard .cd-kpi-card,
 .client-dashboard .cd-section,
-.client-dashboard .cd-sidebar-section {
+.client-dashboard .cd-sidebar-section,
+.client-dashboard .cd-table-card {
   border: var(--cd-line);
   padding: var(--cd-gap);
 }
 
 .client-dashboard .cd-kpi-card h2,
 .client-dashboard .cd-section h2,
-.client-dashboard .cd-sidebar-section h2 {
+.client-dashboard .cd-sidebar-section h2,
+.client-dashboard .cd-table-card h3 {
   margin-top: 0;
 }
 
@@ -77,7 +80,7 @@
 }
 
 .client-dashboard .cd-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr);
+  grid-template-columns: minmax(0, 2fr) minmax(16rem, 0.8fr);
   align-items: start;
 }
 
@@ -121,8 +124,9 @@
 }
 
 .client-dashboard .cd-table-wrap {
-  max-height: 24rem;
+  max-height: 22rem;
   overflow: auto;
+  min-width: 0;
 }
 
 .client-dashboard table {
@@ -146,6 +150,7 @@
 
 .client-dashboard .cd-page-cell {
   overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .client-dashboard .cd-list {
@@ -162,10 +167,15 @@
   opacity: 0.7;
 }
 
-@media (max-width: 900px) {
-  .client-dashboard .cd-kpis,
+@media (max-width: 760px) {
   .client-dashboard .cd-layout,
   .client-dashboard .cd-table-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .client-dashboard .cd-kpis {
     grid-template-columns: 1fr;
   }
 }

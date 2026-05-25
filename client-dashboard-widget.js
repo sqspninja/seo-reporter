@@ -1,5 +1,5 @@
 (function () {
-  const WIDGET_VERSION = '2026-05-25.1';
+  const WIDGET_VERSION = '2026-05-25.2';
   const DEFAULT_DASHBOARD_SRC = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRiDP5-SSqPNCk6BI8ujx6OCPfr_WhKyCRk1WDSBwXXSJ1s5U0euzAeflbE-hLHAZ04bindi1yhYg4U/pub?output=csv';
 
   const state = {};
@@ -65,7 +65,7 @@
     const link = document.createElement('link');
     link.id = 'client-dashboard-widget-styles';
     link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/gh/sqspninja/seo-reporter@main/client-dashboard-widget.css?v=2026-05-25-1';
+    link.href = 'https://cdn.jsdelivr.net/gh/sqspninja/seo-reporter@main/client-dashboard-widget.css?v=2026-05-25-2';
     document.head.appendChild(link);
   }
 
@@ -118,7 +118,7 @@
     </section>`;
   }
 
-  function renderTable(title, rows, columns) {
+  function renderTable(rows, columns) {
     const visibleRows = (rows || []).slice(0, 5);
     const body = visibleRows.length
       ? visibleRows.map((row) => `<tr>${columns.map((column) => `
@@ -127,15 +127,12 @@
           </td>`).join('')}</tr>`).join('')
       : `<tr><td colspan="${columns.length}">No data available for this section.</td></tr>`;
 
-    return `<section class="cd-section">
-      <header class="cd-section-header"><h2>${escapeHtml(title)}</h2></header>
-      <div class="cd-table-wrap">
-        <table>
-          <thead><tr>${columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join('')}</tr></thead>
-          <tbody>${body}</tbody>
-        </table>
-      </div>
-    </section>`;
+    return `<div class="cd-table-wrap">
+      <table>
+        <thead><tr>${columns.map((column) => `<th>${escapeHtml(column.label)}</th>`).join('')}</tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>`;
   }
 
   function renderKeywordPerformance(data) {
@@ -149,8 +146,14 @@
     return `<section class="cd-section cd-search-performance">
       <header class="cd-section-header"><h2>Search Performance</h2></header>
       <div class="cd-table-grid">
-        ${renderTable('Top Keywords by Clicks', data.topKeywordsByClicks, keywordColumns)}
-        ${renderTable('Top Keywords by Visibility', data.topKeywordsByVisibility, keywordColumns)}
+        <article class="cd-table-card">
+          <h3>Top Keywords by Clicks</h3>
+          ${renderTable(data.topKeywordsByClicks, keywordColumns)}
+        </article>
+        <article class="cd-table-card">
+          <h3>Top Keywords by Visibility</h3>
+          ${renderTable(data.topKeywordsByVisibility, keywordColumns)}
+        </article>
       </div>
     </section>`;
   }
@@ -175,7 +178,7 @@
           ${Object.keys(tabs).map((key) => `<button type="button" data-cd-tab="${escapeHtml(id)}" data-cd-tab-value="${escapeHtml(key)}" aria-pressed="${key === activeTab}">${escapeHtml(tabs[key].label)}</button>`).join('')}
         </div>
       </header>
-      ${renderTable(active.label, active.rows, pageColumns)}
+      ${renderTable(active.rows, pageColumns)}
     </section>`;
   }
 
